@@ -43,10 +43,25 @@ blackJackApp.config(['$routeProvider', '$mdThemingProvider', function($routeProv
 }]);
 
 blackJackApp.controller('mainController', function($scope, socket) {
-  $scope.player = {}
-  $scope.dealer = {}
-  $scope.hideSplitButton = {'visibility': 'hidden'};
+  $scope.player = {};
+  $scope.dealer = {};
+  $scope.hideSplitButton = {'visibility': 'visible'};
   $scope.hideSplitHand = {'visibility': 'hidden'};
+  $scope.started = false;
+  $scope.HNDchips = 0;
+  $scope.FTYchips = 0;
+  $scope.TFchips = 0;
+  $scope.FVchips = 0;
+
+  $scope.bet = function(amount) {
+    console.log(`Attempting to bet ${amount}`);
+    socket.emit("bet", amount);
+  }
+
+  $scope.resetBet = function(amount){
+    console.log(`Resetting bet to 0`);
+    socket.emit("resetBet");
+  }
 
   $scope.splitHand = function() {
     console.log("Sending 'split' request");
@@ -98,6 +113,7 @@ blackJackApp.controller('mainController', function($scope, socket) {
 
   // when an action is complete, refresh the data
   socket.on("refresh", function(data) {
+    $scope.started = true;
     console.log(`Recieved game state update:`)
     console.log(data);
     $scope.inProgress = true;
@@ -112,11 +128,27 @@ blackJackApp.controller('mainController', function($scope, socket) {
       $scope.hideSplitHand = {'visibility': 'visible'};
     }
   });
+  socket.on("updateBet", function(data) {
+    $scope.player = data;
+    bet = $scope.player.bet;
+    $scope.HNDchips = Math.floor(bet/100);
+    bet = bet % 100;
 
-  socket.on("connected", function(debug) {
+    $scope.FTYchips = Math.floor(bet/50);
+    bet = bet % 50;
+
+    $scope.TFchips = Math.floor(bet/25);
+    bet = bet % 25;
+
+    $scope.FVchips = Math.floor(bet/25);
+    bet = bet % 25;
+  });
+
+  socket.on("connected", function(debug, player) {
     console.log("Connection Established");
     $scope.debug = debug;
     $scope.inProgress = false;
+    $scope.player = player;
   });
 
 });

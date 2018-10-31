@@ -59,7 +59,23 @@ io.on('connection', function(client) {
   logger.info("New client connected");
 
   // New player
-  var player = {};
+  var player = {
+    pid: 0,
+    balance: 500,
+    hand: [],
+    split: [],
+    value: 0,
+    bet: 0,
+    canHit: true,
+    splitCanHit: false,
+    playing: true,
+    playingSplit: false,
+    sid: client.id,
+    bust: false,
+    splitBust: false,
+    movesLeft: 1,
+    canExchange: true
+  };
   var game = {
 
     reset: function(){
@@ -68,6 +84,8 @@ io.on('connection', function(client) {
         hand: [],
         split: [],
         value: 0,
+        bet: 0,
+        balance: player.balance,
         canHit: true,
         splitCanHit: false,
         playing: true,
@@ -238,6 +256,22 @@ io.on('connection', function(client) {
   
       logger.info("New Game Started!");
     },
+    
+    bet: function(amount){
+      if(player.balance>=amount && player.bet+amount<=500){
+        logger.info(`Betting ${amount}`)
+        player.balance-=amount;
+        player.bet+=amount;
+      }
+      io.sockets.connected[player.sid].emit('updateBet', player);
+    },
+
+    resetBet: function(){
+      logger.info(`Resetting bet to 0`)
+      player.balance+=player.bet;
+      player.bet=0;
+      io.sockets.connected[player.sid].emit('updateBet', player);
+    },
   
     stay: function(player) {
       player.canSplit = false;
@@ -287,8 +321,14 @@ io.on('connection', function(client) {
   };
 
   askSid = client.id;
-  io.sockets.connected[client.id].emit('connected', debug);
+  io.sockets.connected[client.id].emit('connected', debug, player);
 
+  client.on('bet', function(amount) {
+    game.bet(amount);
+  })
+  client.on('resetBet', function(amount) {
+    game.resetBet();
+  })
   client.on('hit', function() {
     game.hit(player);
   });
