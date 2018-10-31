@@ -31,51 +31,64 @@
         <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-style="hideSplitButton">Split</md-button>
         <md-button class="md-accent md-raised" ng-click="hitSplit()" id="hitSplit" ng-disabled="!player.splitCanHit" ng-style="hideSplitHand">Hit (Split Hand)</md-button>
         <md-button class="md-accent md-raised" ng-click="staySplit()" id="staySplit" ng-style="hideSplitHand">Stay (Split Hand)</md-button>
+        <md-button class="md-accent md-raised" ng-click="newGame()" id="newGame" ng-disabled="inProgress">Deal</md-button>
+        <md-toolbar layout="row">
+          <div class="md-toolbar-tools">
+            <h1>Bet</h1>
+          </div>
+        </md-toolbar>
+        <md-card-content layout="row" layout-align="space-around center">
+          <img src="/assets/images/chips/100.png" ng-click="remove100()" ng-disabled="inProgress">
+          <img src="/assets/images/chips/50.png" ng-click="remove50()" ng-disabled="inProgress">
+          <img src="/assets/images/chips/25.png" ng-click="remote25()" ng-disabled="inProgress">
+          <img src="/assets/images/chips/5.png" ng-click="remove5()" ng-disabled="inProgress">
+        </md-card-content>
+        <md-button class="md-accent md-raised" ng-click="resetBet()" id="resetbet" ng-disabled="inProgress">Reset Bet</md-button>
       </md-sidenav>
-      <div ng-show="queued" layout="row" layout="space-between center" flex id="content">
-        <h1>You are currently queued. Waiting on a game to open up...</h1>
-      </div>
-      <div ng-hide="queued" layout="column" flex id="content">
+      <div layout="column" flex id="content">
         <md-content layout="column" flex class="md-padding">
           <md-card>
             <md-toolbar ng-class="{'md-accent': true}" layout="row">
               <div class="md-toolbar-tools">
-                <h1><strong class="winner" ng-show="dealer.winner">[WINNER!] </strong><strong class="winner" ng-show="dealer.bust">[BUST!] </strong>Dealer <span ng-if="gameEnded">(Value: {{dealer.value}})</span></h1>
+                <h1><strong class="winner" ng-show="dealer.winner">[WINNER!] </strong><strong class="winner" ng-show="dealer.bust">[BUST!] </strong>Dealer <span ng-if="!inProgress">(Value: {{dealer.value}})</span></h1>
               </div>
             </md-toolbar>
             <md-card-content layout="row" layout-align="space-around center">
-              <div class="md-whiteframe-1dp" ng-repeat="card in dealer.hand" id="{{'dealer-card-'+$index}}"flex="10" style="text-align:center">
-                <img ng-show="!debug && card.rank===undefined" src="/assets/images/cards/cardBack_red2.png">
-                <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
-              </div>
-            </md-card-content>
-          </md-card>
-          
-          <md-card id="my-hand">
-            <md-toolbar layout="row">
-              <div class="md-toolbar-tools">
-                <h1><strong class="winner" ng-show="player.winner">[WINNER!] </strong><strong class="winner" ng-show="player.bust">[BUST!] </strong>Your hand (Value: <span id="handValue">{{player.value}}</span>)</h1>
-              </div>
-            </md-toolbar>
-            <md-card-content layout="row" layout-align="space-around center">
-              <div class="md-whiteframe-1dp" id="{{'card-'+$index}}" ng-repeat="card in player.hand" flex="10" style="text-align:center">
-                <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
+              <div ng-repeat="card in dealer.hand" id="{{'dealer-card-'+$index}}" flex style="text-align:center">
+                <img ng-show="!debug && card.rank===undefined" flex src="/assets/images/cards/cardBack_red2.png">
+                <img ng-hide="!debug && card.rank===undefined" flex src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
               </div>
             </md-card-content>
           </md-card>
 
-          <md-card id="my-split-hand" ng-style="hideSplitHand">
-            <md-toolbar layout="row">
-              <div class="md-toolbar-tools">
-                <h1><strong class="winner" ng-show="player.splitWinner">[WINNER!] </strong><strong class="winner" ng-show="player.splitBust">[BUST!] </strong>Split Hand (Value: <span id="splitValue">{{player.splitValue}}</span>)</h1>
-              </div>
-            </md-toolbar>
-            <md-card-content layout="row" layout-align="space-around center">
-              <div class="md-whiteframe-1dp" id="{{'card-'+$index}}" ng-repeat="card in player.split" flex="10" style="text-align:center">
-                <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
-              </div>
-            </md-card-content>
-          </md-card>
+          <div layout="row" >
+            <md-card flex id="my-hand">
+              <md-toolbar layout="row">
+                <div class="md-toolbar-tools">
+                  <h1><strong class="winner" ng-show="player.winner">[WINNER!] </strong><strong class="winner" ng-show="player.bust">[BUST!] </strong>Your hand (Value: <span id="handValue">{{player.value}}</span>)</h1>
+                </div>
+              </md-toolbar>
+              <md-card-content layout="row" layout-align="space-around center">
+                <div id="{{'card-'+$index}}" ng-repeat="card in player.hand" flex style="text-align:center">
+                  <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
+                </div>
+              </md-card-content>
+            </md-card>
+
+            <md-card flex id="my-split-hand" ng-if="player.split.length!==0">
+              <md-toolbar layout="row">
+                <div class="md-toolbar-tools">
+                  <h1><strong class="winner" ng-show="player.splitWinner">[WINNER!] </strong><strong class="winner" ng-show="player.splitBust">[BUST!] </strong>Split Hand (Value: <span id="splitValue">{{player.splitValue}}</span>)</h1>
+                </div>
+              </md-toolbar>
+              <md-card-content layout="row" layout-align="space-around center">
+                <div id="{{'card-'+$index}}" ng-repeat="card in player.split" flex style="text-align:center">
+                  <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
+                </div>
+              </md-card-content>
+            </md-card>
+          </div>
+
         </md-content>
       </div>
     </div>

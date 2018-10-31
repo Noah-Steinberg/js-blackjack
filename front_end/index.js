@@ -57,6 +57,7 @@ blackJackApp.controller('mainController', function($scope, socket) {
     console.log("Sending 'hit' request");
     socket.emit("hit");
   };
+
   $scope.stay = function() {
     console.log("Sending 'stay' request");
     socket.emit("stay");
@@ -66,20 +67,21 @@ blackJackApp.controller('mainController', function($scope, socket) {
     console.log("Sending 'hit' request for split hand");
     socket.emit("hitSplit");
   };
+
   $scope.staySplit = function() {
     console.log("Sending 'stay' request for split hand");
     socket.emit("staySplit");
   };
 
-  socket.on("queued", function(me) {
-    console.log("Queued for a game start, waiting for server");
-    $scope.queued = true;
-  });
+  $scope.newGame = function() {
+    console.log("Sending 'new game' request");
+    socket.emit("newGame");
+  };
 
   socket.on("endGame", function(data) {
     console.log(`Recieved end game signal. Winner is:`)
     console.log(data);
-    $scope.gameEnded = true;
+    $scope.inProgress = false;
     if(data.includes(1)){
       console.log("dealer");
       $scope.dealer.winner = true;
@@ -98,6 +100,7 @@ blackJackApp.controller('mainController', function($scope, socket) {
   socket.on("refresh", function(data) {
     console.log(`Recieved game state update:`)
     console.log(data);
+    $scope.inProgress = true;
     $scope.dealer = data.dealer;
     $scope.player = data.me;
     if($scope.player.canSplit){
@@ -109,10 +112,10 @@ blackJackApp.controller('mainController', function($scope, socket) {
     }
   });
 
-  socket.on("starting", function(debug) {
-    console.log("Notified of game start");
+  socket.on("connected", function(debug) {
+    console.log("Connection Established");
     $scope.debug = debug;
-    $scope.queued = false;
+    $scope.inProgress = false;
   });
 
 });

@@ -15,3 +15,6 @@ Run program:
 
 Debug Program:
 Use debug configuration "Launch Program" in vscode
+
+Assets for the cards, chips and sounds are from Boardgame pack v2 by Kenney Vleugels (www.kenney.nl)
+See assets/license.txt for more details

@@ -59,26 +59,31 @@ io.on('connection', function(client) {
   logger.info("New client connected");
 
   // New player
-  var player = {
-    pid: 0,
-    hand: [],
-    split: [],
-    value: 0,
-    canHit: true,
-    splitCanHit: false,
-    playing: true,
-    playingSplit: false,
-    sid: client.id,
-    bust: false,
-    splitBust: false,
-    movesLeft: 1,
-    canExchange: true
-  };
+  var player = {};
   var game = {
-    table: [],
-    inProgress: false,
-    deck: [],
-    dealer: { pid: "dealer", hand: [], value: 0, playing: true, bust: false },
+
+    reset: function(){
+      player = {
+        pid: 0,
+        hand: [],
+        split: [],
+        value: 0,
+        canHit: true,
+        splitCanHit: false,
+        playing: true,
+        playingSplit: false,
+        sid: client.id,
+        bust: false,
+        splitBust: false,
+        movesLeft: 1,
+        canExchange: true
+      };
+      game.table = [];
+      game.inProgress = false;
+      game.deck = [];
+      game.dealer = { pid: "dealer", hand: [], value: 0, playing: true, bust: false };
+      game.start();
+    },
   
     generateDeck: function() {
       var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9","10", "J", "Q", "K"];
@@ -263,7 +268,7 @@ io.on('connection', function(client) {
       player.split.push(game.deck.pop());
       player.split[player.split.length-1].hidden = false;
       game.calculateHands();
-      if(player.splitValue > 21){
+      if(player.splitValue > 999){
         player.splitCanHit = false;
         player.splitBust = true;
         player.playingSplit = false;
@@ -281,8 +286,7 @@ io.on('connection', function(client) {
   };
 
   askSid = client.id;
-  io.sockets.connected[client.id].emit('starting', debug);
-  game.start();
+  io.sockets.connected[client.id].emit('connected', debug);
 
   client.on('hit', function() {
     game.hit(player);
@@ -299,5 +303,8 @@ io.on('connection', function(client) {
   client.on('staySplit', function() {
     game.staySplit(player);
   });
+  client.on('newGame', function() {
+    game.reset();
+  })
 });
 
