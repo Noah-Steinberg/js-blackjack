@@ -184,7 +184,7 @@ io.on('connection', function(client) {
             value+=10;
           break;
           case 'A':
-            acecount++;
+            aceCount++;
             break;
           default:
             value+=parseInt(hand[i].rank);          
