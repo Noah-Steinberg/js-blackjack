@@ -24,46 +24,49 @@
       <md-sidenav flex layout="column" class="md-sidenav-left md-whiteframe-4dp" md-component-id="left" md-is-locked-open="true">
         <md-toolbar layout="row">
           <div class="md-toolbar-tools">
-            <h1>Controls</h1>
+            <h1>Game Controls</h1>
           </div>
         </md-toolbar>
-        <md-button class="md-accent md-raised" ng-click="hit()" id="hit" ng-disabled="!player.playing || !inProgress">Hit</md-button>
-        <md-button class="md-accent md-raised" ng-click="stay()" id="stay" ng-disabled="!player.playing || !inProgress">Stay</md-button>
-        <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-disabled="!player.playing || !player.canSplit" ng-style="hideSplitButton">Split</md-button>
-        <md-button class="md-accent md-raised" ng-click="hitSplit()" id="hitSplit" ng-disabled="!player.playing || !inProgress" ng-style="hideSplitHand">Hit (Split Hand)</md-button>
-        <md-button class="md-accent md-raised" ng-click="staySplit()" id="staySplit" ng-disabled="!player.playing || !inProgress" ng-style="hideSplitHand">Stay (Split Hand)</md-button>
-        <md-button class="md-accent md-raised" ng-click="newGame()" id="newGame" ng-disabled="inProgress">Deal</md-button>
+        <div layout="row">
+          <md-button class="md-accent md-raised" ng-click="hit()" id="hit" ng-disabled="!player.playing || !inProgress" flex >Hit</md-button>
+          <md-button class="md-accent md-raised" ng-click="stay()" id="stay" ng-disabled="!player.playing || !inProgress" flex >Stay</md-button>
+        </div>
+        <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-disabled="!player.playing || !player.canSplit" ng-if="!player.playingSplit">Split</md-button>
+        <div layout="row" ng-if="player.playingSplit">
+          <md-button class="md-accent md-raised" ng-click="hitSplit()" id="hitSplit" ng-disabled="!player.playingSplit || !inProgress"  flex>Hit (Split Hand)</md-button>
+          <md-button class="md-accent md-raised" ng-click="staySplit()" id="staySplit" ng-disabled="!player.playingSplit || !inProgress"  flex>Stay (Split Hand)</md-button>
+        </div>
+        <md-button class="md-accent md-raised" ng-click="betInsurance()" id="betInsurance" ng-disabled="!inProgress || !player.canBetInsurance">Insurance</md-button>
+        <md-button class="md-accent md-raised" ng-click="newGame()" id="newGame" ng-disabled="inProgress || player.bet<5">Deal</md-button>
         <md-toolbar layout="row">
-            <div class="md-toolbar-tools">
-              <h1>Tips</h1>
-            </div>
-          </md-toolbar>
-          <p>To increase bet, click on the respective chip. Click Reset Bet to set bet to 0</p>
-          <p>Minimum bet is $5, maximum bet is $500</p>
-          <p>After each round, place your bet while your last round results are displayed, then click deal to deal the cards</p>
+          <div class="md-toolbar-tools">
+            <h1>Other</h1>
+          </div>
         </md-toolbar>
+        <md-button class="md-accent md-raised" ng-click="showHelp()" id="help">Help</md-button>
+        <md-button class="md-accent md-raised" ng-click="chooseCardBack()" id="help">Choose Card Back</md-button>
         <md-toolbar layout="row">
             <div class="md-toolbar-tools">
               <h1>Bet: ${{player.bet}}</h1>
             </div>
           </md-toolbar>
           <md-card-content layout="row" layout-align="space-around center">
-              <div class="container" ng-click="bet(100)">
-                <img src="/assets/images/chips/100.png" ng-disabled="inProgress">
-                <div class=centered>100</div>
-              </div>
-              <div class="container" ng-click="bet(50)">
-                <img src="/assets/images/chips/50.png" ng-disabled="inProgress">
-                <div class=centered>50</div>
-              </div>
-              <div class="container" ng-click="bet(25)">
+            <div class="container" ng-click="bet(5)">
+              <img src="/assets/images/chips/5.png"  ng-disabled="inProgress">
+              <div class=centered>5</div>
+            </div>
+            <div class="container" ng-click="bet(25)">
                 <img src="/assets/images/chips/25.png" ng-disabled="inProgress">
                 <div class=centered>25</div>
               </div>
-              <div class="container" ng-click="bet(5)">
-                <img src="/assets/images/chips/5.png"  ng-disabled="inProgress">
-                <div class=centered>5</div>
-              </div>
+            <div class="container" ng-click="bet(50)">
+                <img src="/assets/images/chips/50.png" ng-disabled="inProgress">
+                <div class=centered>50</div>
+            </div>
+            <div class="container" ng-click="bet(100)">
+              <img src="/assets/images/chips/100.png" ng-disabled="inProgress">
+              <div class=centered>100</div>
+            </div>
           </md-card-content>
           <md-button class="md-accent md-raised" ng-click="resetBet()" id="resetbet" ng-disabled="inProgress">Reset Bet</md-button>
         <md-toolbar layout="row" >
@@ -85,7 +88,7 @@
             </md-toolbar>
             <md-card-content layout="row" layout-align="space-around center">
               <div ng-repeat="card in dealer.hand" id="{{'dealer-card-'+$index}}" flex style="text-align:center">
-                <img ng-show="!debug && card.rank===undefined" flex src="/assets/images/cards/cardBack_red2.png">
+                <img ng-show="!debug && card.rank===undefined" flex src="/assets/images/cards/{{cardBack}}">
                 <img ng-hide="!debug && card.rank===undefined" flex src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
               </div>
             </md-card-content>

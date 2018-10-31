@@ -84,7 +84,7 @@ io.on('connection', function(client) {
         hand: [],
         split: [],
         value: 0,
-        bet: 0,
+        bet: player.bet,
         balance: player.balance,
         canHit: true,
         splitCanHit: false,
@@ -132,9 +132,9 @@ io.on('connection', function(client) {
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
       player.hand.push(card2);
-      //if(card.rank==card2.rank){
+      if('card.rank==card2.rank' && player.balance>=player.bet){
         player.canSplit = true;
-      //}
+      }
   
       card = game.deck.pop();
       card.hidden = true;
@@ -175,6 +175,7 @@ io.on('connection', function(client) {
   
     calculateHand: function(hand) {
       var value = 0;
+      var aceCount = 0;
       for(var i=0;i<hand.length;i++){
         switch (hand[i].rank){
           case 'K':
@@ -183,17 +184,23 @@ io.on('connection', function(client) {
             value+=10;
           break;
           case 'A':
-            if(value+11>21){
-              value+=1;
-            }
-            else{
-              value+=11;
-            }
+            acecount++;
             break;
           default:
             value+=parseInt(hand[i].rank);          
             break;
         }
+      }
+      if(aceCount===1){
+        if(value+11>21){
+          value+=1;
+        }
+        else{
+          value+=11;
+        }
+      }
+      else{
+        value+=1*aceCount;
       }
       return value;
     },
@@ -222,19 +229,22 @@ io.on('connection', function(client) {
       winner = []
       if( (player.value>game.dealer.value && player.value <= 21) ||
           (player.value <= 21 && game.dealer.value > 21) ){
-        logger.info("Player has won!")
+        logger.info("Player has won!");
+        player.balance += player.bet*2;
         winner.push(2);
       }
       if( (player.splitValue>game.dealer.value && player.splitValue <= 21) ||
           (player.splitValue <= 21 && game.dealer.value > 21 && player.splitValue != 0) ){
-            logger.info("Player split hand has won!")
+        logger.info("Player split hand has won!");
+        player.balance += player.bet*2;
         winner.push(3);
       }
       if(winner.length===0 && game.dealer.value <= 21){
-        logger.info("Dealer has won!")
+        logger.info("Dealer has won!");
         winner.push(1);
       }
       logger.info("Sending following winner data: " + JSON.stringify(winner));
+      player.bet=0;
       return winner;
   
     },
@@ -312,6 +322,7 @@ io.on('connection', function(client) {
     },
   
     split: function() {
+      player.balance-=player.bet;
       player.canSplit = false;
       player.splitCanHit = true;
       player.playingSplit = true;
@@ -345,7 +356,7 @@ io.on('connection', function(client) {
     game.staySplit(player);
   });
   client.on('newGame', function() {
-    game.reset();
+      game.reset();
   })
 });
 

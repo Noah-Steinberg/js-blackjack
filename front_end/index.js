@@ -1,4 +1,17 @@
+
+
 var blackJackApp = angular.module('blackJackApp', ['ngRoute', 'ngMaterial']);
+
+function DialogController($scope, $mdDialog) {
+
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+  $scope.choose = function(choose) {
+    $mdDialog.hide(choose);
+  };
+
+}
 
 blackJackApp.factory('socket', ['$rootScope', function ($rootScope) {
   var socket = io.connect();
@@ -42,16 +55,40 @@ blackJackApp.config(['$routeProvider', '$mdThemingProvider', function($routeProv
 
 }]);
 
-blackJackApp.controller('mainController', function($scope, socket) {
+blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.player = {};
   $scope.dealer = {};
-  $scope.hideSplitButton = {'visibility': 'visible'};
-  $scope.hideSplitHand = {'visibility': 'hidden'};
   $scope.started = false;
   $scope.HNDchips = 0;
   $scope.FTYchips = 0;
   $scope.TFchips = 0;
   $scope.FVchips = 0;
+  $scope.cardBack = "cardBack_red2.png";
+
+  $scope.showHelp = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'help.ejs',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+  };
+
+  $scope.chooseCardBack = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'chooseCardBack.ejs',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+    .then(function(cardBack) {
+      $scope.cardBack = cardBack;
+    });
+  };
 
   $scope.bet = function(amount) {
     console.log(`Attempting to bet ${amount}`);
@@ -119,14 +156,6 @@ blackJackApp.controller('mainController', function($scope, socket) {
     $scope.inProgress = true;
     $scope.dealer = data.dealer;
     $scope.player = data.me;
-    if($scope.player.canSplit){
-      $scope.hideSplitButton = {'visibility': 'visible'};
-      $scope.hideSplitHand = {'visibility': 'hidden'};
-    }
-    if($scope.player.split.length > 0){
-      $scope.hideSplitButton = {'visibility': 'hidden'};
-      $scope.hideSplitHand = {'visibility': 'visible'};
-    }
   });
   socket.on("updateBet", function(data) {
     $scope.player = data;
