@@ -26,11 +26,11 @@
             <h1>Controls</h1>
           </div>
         </md-toolbar>
-        <md-button class="md-accent md-raised" ng-click="hit()" id="hit" ng-disabled="!player.canHit">Hit</md-button>
-        <md-button class="md-accent md-raised" ng-click="stay()" id="stay">Stay</md-button>
-        <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-style="hideSplitButton">Split</md-button>
-        <md-button class="md-accent md-raised" ng-click="hitSplit()" id="hitSplit" ng-disabled="!player.splitCanHit" ng-style="hideSplitHand">Hit (Split Hand)</md-button>
-        <md-button class="md-accent md-raised" ng-click="staySplit()" id="staySplit" ng-style="hideSplitHand">Stay (Split Hand)</md-button>
+        <md-button class="md-accent md-raised" ng-click="hit()" id="hit" ng-disabled="!player.playing">Hit</md-button>
+        <md-button class="md-accent md-raised" ng-click="stay()" id="stay" ng-disabled="!player.playing">Stay</md-button>
+        <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-disabled="!player.playing && !player.canSplit" ng-style="hideSplitButton">Split</md-button>
+        <md-button class="md-accent md-raised" ng-click="hitSplit()" id="hitSplit" ng-disabled="!player.playingSplit" ng-style="hideSplitHand">Hit (Split Hand)</md-button>
+        <md-button class="md-accent md-raised" ng-click="staySplit()" id="staySplit" ng-disabled="!player.playingSplit" ng-style="hideSplitHand">Stay (Split Hand)</md-button>
         <md-button class="md-accent md-raised" ng-click="newGame()" id="newGame" ng-disabled="inProgress">Deal</md-button>
         <md-toolbar layout="row">
           <div class="md-toolbar-tools">

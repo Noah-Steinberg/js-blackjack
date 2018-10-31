@@ -262,13 +262,14 @@ io.on('connection', function(client) {
     staySplit: function(player) {
       player.playingSplit = false;
       player.splitCanHit = false;
+      game.refreshTable(player);
     },
   
     hitSplit: function(player) {
       player.split.push(game.deck.pop());
       player.split[player.split.length-1].hidden = false;
       game.calculateHands();
-      if(player.splitValue > 999){
+      if(player.splitValue > 21){
         player.splitCanHit = false;
         player.splitBust = true;
         player.playingSplit = false;

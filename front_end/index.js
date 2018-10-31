@@ -105,6 +105,7 @@ blackJackApp.controller('mainController', function($scope, socket) {
     $scope.player = data.me;
     if($scope.player.canSplit){
       $scope.hideSplitButton = {'visibility': 'visible'};
+      $scope.hideSplitHand = {'visibility': 'hidden'};
     }
     if($scope.player.split.length > 0){
       $scope.hideSplitButton = {'visibility': 'hidden'};
