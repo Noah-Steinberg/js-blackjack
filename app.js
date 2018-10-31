@@ -21,6 +21,7 @@ app.set('view engine', 'ejs');
 app.set('views', __dirname + '/front_end');
 app.use(express.static(__dirname + '/front_end'));
 app.use('/scripts', express.static(__dirname + '/node_modules'));
+app.use('/assets', express.static(__dirname + '/assets'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session);
@@ -196,17 +197,17 @@ io.on('connection', function(client) {
     determineWinner: function() {
       game.calculateHands();
       winner = []
-      if( (player.value>game.dealer.value && player.value < 21) ||
-          (player.value < 21 && game.dealer.value > 21) ){
+      if( (player.value>game.dealer.value && player.value <= 21) ||
+          (player.value <= 21 && game.dealer.value > 21) ){
         logger.info("Player has won!")
         winner.push(2);
       }
-      if( (player.splitValue>game.dealer.value && player.splitValue < 21) ||
-          (player.splitValue < 21 && game.dealer.value > 21 && player.splitValue != 0) ){
+      if( (player.splitValue>game.dealer.value && player.splitValue <= 21) ||
+          (player.splitValue <= 21 && game.dealer.value > 21 && player.splitValue != 0) ){
             logger.info("Player split hand has won!")
         winner.push(3);
       }
-      if(winner.length===0 && game.dealer.value < 21){
+      if(winner.length===0 && game.dealer.value <= 21){
         logger.info("Dealer has won!")
         winner.push(1);
       }

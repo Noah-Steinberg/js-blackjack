@@ -80,15 +80,15 @@ blackJackApp.controller('mainController', function($scope, socket) {
     console.log(`Recieved end game signal. Winner is:`)
     console.log(data);
     $scope.gameEnded = true;
-    if(1 in data){
+    if(data.includes(1)){
       console.log("dealer");
       $scope.dealer.winner = true;
     }
-    if(2 in data){
+    if(data.includes(2)){
       console.log("player");
       $scope.player.winner = true;
     }
-    if(3 in data){
+    if(data.includes(3)){
       console.log("player split hand");
       $scope.player.splitWinner = true;
     }
