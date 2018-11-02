@@ -59,10 +59,6 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.player = {};
   $scope.dealer = {};
   $scope.started = false;
-  $scope.HNDchips = 0;
-  $scope.FTYchips = 0;
-  $scope.TFchips = 0;
-  $scope.FVchips = 0;
   $scope.cardBack = "cardBack_red2.png";
 
   $scope.showHelp = function(ev) {
@@ -150,27 +146,27 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
 
   // when an action is complete, refresh the data
   socket.on("refresh", function(data) {
+    var audio = new Audio('assets/sounds/hit.ogg');
+    if(!$scope.started){
+      audio.play();
+    }
     $scope.started = true;
     console.log(`Recieved game state update:`)
     console.log(data);
     $scope.inProgress = true;
     $scope.dealer = data.dealer;
+    if($scope.player!=={} && ($scope.player.hand.length < data.me.hand.length || 
+      $scope.player.split.length < data.me.split.length)){
+        audio.play();
+    }
     $scope.player = data.me;
   });
   socket.on("updateBet", function(data) {
+    if($scope.player.bet!=data.bet){
+      var audio = new Audio('assets/sounds/bet.ogg');
+      audio.play();
+    }
     $scope.player = data;
-    bet = $scope.player.bet;
-    $scope.HNDchips = Math.floor(bet/100);
-    bet = bet % 100;
-
-    $scope.FTYchips = Math.floor(bet/50);
-    bet = bet % 50;
-
-    $scope.TFchips = Math.floor(bet/25);
-    bet = bet % 25;
-
-    $scope.FVchips = Math.floor(bet/25);
-    bet = bet % 25;
   });
 
   socket.on("connected", function(debug, player) {
