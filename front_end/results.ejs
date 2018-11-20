@@ -1,0 +1,29 @@
+
+<md-dialog aria-label="Results">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Results</h2>
+        <span flex></span>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h1 ng-show="dealer.winner">You lost!</h1>
+        <h1 ng-show="player.winner">Your hand won!</h1>
+        <h1 ng-show="player.splitWinner">Your split hand won!</h1>
+        <h1 ng-show="player.insuranceWinner">Your insurance bet won!</h1>
+        <h1 ng-show="player.winner || player.splitWinner || player.insuranceWinner">You recieved ${{ player.bet }}</h1>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="cancel()">
+       Close
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
+
