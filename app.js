@@ -74,7 +74,9 @@ io.on('connection', function(client) {
     bust: false,
     splitBust: false,
     movesLeft: 1,
-    canExchange: true
+    canDouble: false,
+    canBetInsurance: false,
+    insured: false
   };
   var game = {
 
@@ -94,7 +96,9 @@ io.on('connection', function(client) {
         bust: false,
         splitBust: false,
         movesLeft: 1,
-        canExchange: true
+        canDouble: false,
+        canBetInsurance: false,
+        insured: false
       };
       game.table = [];
       game.inProgress = false;
@@ -128,22 +132,31 @@ io.on('connection', function(client) {
       card.hidden = true;
       logger.info("Player Dealt a " + card.rank + card.suit);
       player.hand.push(card);
+
       var card2 = game.deck.pop();
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
       player.hand.push(card2);
-      if('card.rank==card2.rank' && player.balance>=player.bet){
+      if(card.rank==card2.rank && player.balance>=player.bet){
         player.canSplit = true;
+      }
+      if(player.balance>=player.bet){
+        player.canDouble = true;
       }
   
       card = game.deck.pop();
       card.hidden = true;
       logger.info("Dealer Dealt a " + card.rank + card.suit + " face down");
       game.dealer.hand.push(card);
+
       card = game.deck.pop();
       card.hidden = false;
       logger.info("Dealer Dealt a " + card.rank + card.suit);
       game.dealer.hand.push(card);
+
+      if(card.rank==="A"){
+        player.canBetInsurance = true;
+      }
     },
   
     // Emit the state of the table to the player, stripping data
@@ -230,7 +243,13 @@ io.on('connection', function(client) {
       if( (player.value>game.dealer.value && player.value <= 21) ||
           (player.value <= 21 && game.dealer.value > 21) ){
         logger.info("Player has won!");
-        player.balance += player.bet*2;
+        if(player.hand.length==2 && player.value==21){
+          logger.info("Player got blackjack!")
+          player.balance += player.bet*2 + Math.floor(player.bet/2);
+        }
+        else{
+          player.balance += player.bet*2;
+        }
         winner.push(2);
       }
       if( (player.splitValue>game.dealer.value && player.splitValue <= 21) ||
@@ -239,9 +258,16 @@ io.on('connection', function(client) {
         player.balance += player.bet*2;
         winner.push(3);
       }
-      if(winner.length===0 && game.dealer.value <= 21){
+      if(winner.length===0 && game.dealer.value <= 21 && 
+        ( (player.value>21 && player.splitValue>21) || 
+          (game.dealer.value>player.value && game.dealer.value>player.splitValue))){
         logger.info("Dealer has won!");
         winner.push(1);
+      }
+      if(player.insured && game.dealer.hand.length==2 && game.dealer.value==21){
+        logger.info("Player won insurance!");
+        player.balance+=player.bet * 1.5;
+        winner.push(4);
       }
       logger.info("Sending following winner data: " + JSON.stringify(winner));
       player.bet=0;
@@ -282,15 +308,24 @@ io.on('connection', function(client) {
       player.bet=0;
       io.sockets.connected[player.sid].emit('updateBet', player);
     },
+
+    insurance: function(){
+      logger.info(`Betting insurance`)
+      player.insured=true;
+      player.balance-=Math.floor(player.bet/2);
+      game.refreshTable();
+    },
   
     stay: function(player) {
       player.canSplit = false;
       player.playing = false;
       player.canHit = false;
+      player.canDouble = false;
       game.refreshTable(player);
     },
   
     hit: function(player) {
+      player.canDouble = false;
       player.canSplit = false;
       player.hand.push(game.deck.pop());
       player.hand[player.hand.length-1].hidden = false;
@@ -301,6 +336,13 @@ io.on('connection', function(client) {
         player.playing = false;
       }
       game.refreshTable(player);
+    },
+
+    double: function(player) {
+      player.balance-=player.bet;
+      player.bet+=player.bet;
+      player.canHit = false;
+      game.hit(player);
     },
 
     staySplit: function(player) {
@@ -336,16 +378,25 @@ io.on('connection', function(client) {
 
   client.on('bet', function(amount) {
     game.bet(amount);
-  })
+  });
   client.on('resetBet', function(amount) {
     game.resetBet();
-  })
+  });
+  client.on('insurance', function() {
+    game.insurance(player);
+  });
+
   client.on('hit', function() {
     game.hit(player);
   });
   client.on('stay', function() {
     game.stay(player);
   });
+
+  client.on('double', function() {
+    game.double(player);
+  });
+
   client.on('split', function() {
     game.split();
   });
@@ -355,6 +406,7 @@ io.on('connection', function(client) {
   client.on('staySplit', function() {
     game.staySplit(player);
   });
+
   client.on('newGame', function() {
       game.reset();
   })

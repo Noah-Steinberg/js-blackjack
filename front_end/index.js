@@ -72,6 +72,18 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     })
   };
 
+  $scope.showResults = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      scope: $scope.$new(),
+      templateUrl: 'results.ejs',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+  };
+
   $scope.chooseCardBack = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -91,9 +103,14 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     socket.emit("bet", amount);
   }
 
-  $scope.resetBet = function(amount){
+  $scope.resetBet = function(){
     console.log(`Resetting bet to 0`);
     socket.emit("resetBet");
+  }
+
+  $scope.insurance = function(){
+    console.log(`Insuring player`);
+    socket.emit("insurance");
   }
 
   $scope.splitHand = function() {
@@ -109,6 +126,11 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.stay = function() {
     console.log("Sending 'stay' request");
     socket.emit("stay");
+  };
+
+  $scope.double = function() {
+    console.log("Sending 'hit' request");
+    socket.emit("double");
   };
 
   $scope.hitSplit = function() {
@@ -131,17 +153,28 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     console.log(data);
     $scope.inProgress = false;
     if(data.includes(1)){
-      console.log("dealer");
+      console.log("dealer win");
       $scope.dealer.winner = true;
     }
     if(data.includes(2)){
-      console.log("player");
+      console.log("player win");
       $scope.player.winner = true;
     }
     if(data.includes(3)){
-      console.log("player split hand");
+      console.log("player split hand win");
       $scope.player.splitWinner = true;
     }
+    if(data.includes(4)){
+      console.log("player insurance win");
+      $scope.player.insuranceWinner = true;
+    }
+    if(data.length==0 || (data.length==1 && data[0]==4)){
+      console.log("tie");
+      $scope.tie = true;
+    }
+    var audio = new Audio('assets/sounds/hit.ogg');
+    audio.play();
+    $scope.showResults();
   });
 
   // when an action is complete, refresh the data

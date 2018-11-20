@@ -18,3 +18,7 @@ Use debug configuration "Launch Program" in vscode
 
 Assets for the cards, chips and sounds are from Boardgame pack v2 by Kenney Vleugels (www.kenney.nl)
 See assets/license.txt for more details
+
+##TODO
+Complete ties independently for split and normal hand
+Change ties to return the bet, instead of dealer winning
