@@ -5,6 +5,7 @@ var debug = process.argv.length>3 ? process.argv[3]==="true": false;
 var express = require('express'),
     fs = require('fs'),
     bodyParser = require('body-parser'),
+    http = require('http'),
     https = require('https'),
     uuid = require('node-uuid'),
     sleep = require('sleep'),
@@ -16,11 +17,6 @@ var express = require('express'),
       saveUninitialized: true
     }),
     port = process.argv.length > 2 ? parseInt(process.argv[2]): 443;
-
-const options = {
-  key: fs.readFileSync(process.env.SERVER_KEY),
-  cert: fs.readFileSync(process.env.SERVER_CERT)
-};
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/front_end');
@@ -36,9 +32,21 @@ app.all('/', function (req, res) {
   res.render('index');
 });
 
-console.log(`Starting server on port ${port}`);
-var server = https.createServer(options, app).listen(port);
-console.log(`Server started!`);
+if(debug){
+  console.log(`Starting server on port ${port}`);
+  var server = http.createServer(app).listen(port);
+  console.log(`Server started!`);
+}
+else{
+  const options = {
+    key: fs.readFileSync(process.env.SERVER_KEY),
+    cert: fs.readFileSync(process.env.SERVER_CERT)
+  };
+  console.log(`Starting server on port ${port}`);
+  var server = https.createServer(options, app).listen(port);
+  console.log(`Server started!`);
+}
+
 
 
 io = require('socket.io').listen(server);
