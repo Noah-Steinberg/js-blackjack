@@ -36,10 +36,10 @@ app.all('/', function (req, res) {
   res.render('index');
 });
 
-var server = https.Server(app);
-server.listen(port, function() {
-  console.log("Server started on port: ", port);
-});
+console.log(`Starting server on port ${port}`);
+var server = https.createServer(options, app).listen(port);
+console.log(`Server started!`);
+
 
 io = require('socket.io').listen(server);
 
