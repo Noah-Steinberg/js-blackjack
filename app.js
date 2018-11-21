@@ -5,7 +5,7 @@ var debug = process.argv.length>3 ? process.argv[3]==="true": false;
 var express = require('express'),
     fs = require('fs'),
     bodyParser = require('body-parser'),
-    http = require('http'),
+    https = require('https'),
     uuid = require('node-uuid'),
     sleep = require('sleep'),
     _ = require('lodash'),
@@ -15,7 +15,12 @@ var express = require('express'),
       resave: true,
       saveUninitialized: true
     }),
-    port = process.argv.length > 2 ? parseInt(process.argv[2]): 8080;
+    port = process.argv.length > 2 ? parseInt(process.argv[2]): 443;
+
+const options = {
+  key: fs.readFileSync(process.env.SERVER_KEY),
+  cert: fs.readFileSync(process.env.SERVER_CERT)
+};
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/front_end');
@@ -31,12 +36,12 @@ app.all('/', function (req, res) {
   res.render('index');
 });
 
-var httpServer = http.Server(app);
-httpServer.listen(port, function() {
+var server = https.Server(app);
+server.listen(port, function() {
   console.log("Server started on port: ", port);
 });
 
-io = require('socket.io').listen(httpServer);
+io = require('socket.io').listen(server);
 
 // New game connection requested
 io.on('connection', function(client) {
