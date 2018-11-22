@@ -267,7 +267,7 @@ io.on('connection', function(client) {
           (player.hand.value <= 21 && game.dealer.hand.value > 21) ){
         logger.info("Player has won!");
 
-        if(player.hand.length==2 && player.hand.value==21 && player.split.cards.length==0){
+        if(player.hand.cards.length===2 && player.hand.value==21 && player.split.cards.length===0){
           logger.info("Player got blackjack!")
           player.balance += player.bet*2 + Math.floor(player.bet/2);
           winnings += player.bet*2 + Math.floor(player.bet/2);
@@ -300,7 +300,7 @@ io.on('connection', function(client) {
         winner.push(5);
       }
 
-      if(player.insured && game.dealer.hand.length==2 && game.dealer.hand.value==21){
+      if(player.insured && game.dealer.hand.cards.length==2 && game.dealer.hand.value==21){
         logger.info("Player won insurance!");
         player.balance+=player.bet * 1.5;
         winnings+=player.bet * 1.5;
