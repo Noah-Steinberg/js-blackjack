@@ -75,48 +75,57 @@ io.on('connection', function(client) {
   var player = {
     pid: 0,
     balance: 500,
-    hand: [],
-    split: [],
-    value: 0,
+    hand: {
+      cards: [],
+      value: 0,
+      canHit: true,
+      canSplit: false,
+    },
+    split: {
+      cards: [],
+      value: 0,
+      canHit: false,
+    },
     bet: 0,
-    canHit: true,
-    splitCanHit: false,
     playing: true,
-    playingSplit: false,
     sid: client.id,
-    bust: false,
-    splitBust: false,
-    movesLeft: 1,
     canDouble: false,
-    canBetInsurance: false,
-    insured: false
+    canInsure: false,
   };
   var game = {
 
     reset: function(){
       player = {
         pid: 0,
-        hand: [],
-        split: [],
-        value: 0,
-        bet: player.bet,
         balance: player.balance,
-        canHit: true,
-        splitCanHit: false,
+        hand: {
+          cards: [],
+          value: 0,
+          canHit: true,
+          canSplit: false,
+        },
+        split: {
+          cards: [],
+          value: 0,
+          canHit: false,
+        },
+        bet: player.bet,
         playing: true,
-        playingSplit: false,
         sid: client.id,
-        bust: false,
-        splitBust: false,
-        movesLeft: 1,
         canDouble: false,
-        canBetInsurance: false,
-        insured: false
+        canInsure: false,
       };
       game.table = [];
       game.inProgress = false;
       game.deck = [];
-      game.dealer = { pid: "dealer", hand: [], value: 0, playing: true, bust: false };
+      game.dealer = { 
+        pid: "dealer", 
+        hand: {
+          cards: [],
+          value: 0,
+        },
+        playing: true
+       };
       game.start();
     },
   
@@ -124,7 +133,6 @@ io.on('connection', function(client) {
       var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9","10", "J", "Q", "K"];
       var suits = ["C", "D", "H", "S"];
       var deck = [];
-  
       for (var i = 0; i < suits.length; i++) {
         for (var j = 0; j < ranks.length; j++) {
           deck.push({rank: ranks[j], suit: suits[i], hidden: false});
@@ -144,14 +152,14 @@ io.on('connection', function(client) {
       var card = game.deck.pop();
       card.hidden = true;
       logger.info("Player Dealt a " + card.rank + card.suit);
-      player.hand.push(card);
+      player.hand.cards.push(card);
 
       var card2 = game.deck.pop();
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
-      player.hand.push(card2);
+      player.hand.cards.push(card2);
       if(card.rank==card2.rank && player.balance>=player.bet){
-        player.canSplit = true;
+        player.hand.canSplit = true;
       }
       if(player.balance>=player.bet){
         player.canDouble = true;
@@ -160,15 +168,15 @@ io.on('connection', function(client) {
       card = game.deck.pop();
       card.hidden = true;
       logger.info("Dealer Dealt a " + card.rank + card.suit + " face down");
-      game.dealer.hand.push(card);
+      game.dealer.hand.cards.push(card);
 
       card = game.deck.pop();
       card.hidden = false;
       logger.info("Dealer Dealt a " + card.rank + card.suit);
-      game.dealer.hand.push(card);
+      game.dealer.hand.cards.push(card);
 
-      if(card.rank==="A"){
-        player.canBetInsurance = true;
+      if(card.rank==="A" && player.balance >= Math.floor(player.bet/2)){
+        player.canInsure = true;
       }
     },
   
@@ -177,22 +185,24 @@ io.on('connection', function(client) {
       // They don't have a socket ID? Don't send, its the dealer
       if (!('sid' in player))
         return;
+
       game.calculateHands();
+
       var cleanedDealer = _.cloneDeep(game.dealer);
-      for(var i=0;i<cleanedDealer.hand.length;i++){
-        if(cleanedDealer.hand[i].hidden && game.inProgress){
-          cleanedDealer.hand[i] = debug ? cleanedDealer.hand[i] : '??' + i.toString();
+      for(var i=0;i<cleanedDealer.hand.cards.length;i++){
+        if(cleanedDealer.hand.cards[i].hidden && game.inProgress){
+          cleanedDealer.hand.cards[i] = debug ? cleanedDealer.hand.cards[i] : '??' + i.toString();
         }
       }
-      player.name = "Player"
-      
+
       var data = {
         dealer: cleanedDealer,
         me: player,
       };
+
       logger.info("Refreshing table with new data: " + JSON.stringify(data));
       io.sockets.connected[player.sid].emit('refresh', data);
-      if(!player.playing && !player.playingSplit && game.inProgress){
+      if(!player.playing && game.inProgress){
         game.inProgress = false;
         game.playDealer();
         game.finishGame();
@@ -202,8 +212,8 @@ io.on('connection', function(client) {
     calculateHand: function(hand) {
       var value = 0;
       var aceCount = 0;
-      for(var i=0;i<hand.length;i++){
-        switch (hand[i].rank){
+      for(var i=0;i<hand.cards.length;i++){
+        switch (hand.cards[i].rank){
           case 'K':
           case 'Q':
           case 'J':
@@ -213,7 +223,7 @@ io.on('connection', function(client) {
             aceCount++;
             break;
           default:
-            value+=parseInt(hand[i].rank);          
+            value+=parseInt(hand.cards[i].rank);          
             break;
         }
       }
@@ -232,66 +242,82 @@ io.on('connection', function(client) {
     },
   
     calculateHands: function() {
-      player.value = game.calculateHand(player.hand);
-      player.splitValue = game.calculateHand(player.split);
-      game.dealer.value = game.calculateHand(game.dealer.hand);
+      player.hand.value = game.calculateHand(player.hand);
+      player.split.value = game.calculateHand(player.split);
+      game.dealer.hand.value = game.calculateHand(game.dealer.hand);
     },
   
     playDealer: function() {
-      if ( ( player.bust && player.playingSplit==false ) ||
-           ( player.bust && player.splitBust) ){
-             return;
-           }
-      else if(game.dealer.value < 17){
-        game.hit(game.dealer);
+      if(game.dealer.hand.value < 17){
+        game.dealer.hand.cards.push(game.deck.pop());
+        game.calculateHands();
         game.refreshTable();
         game.playDealer();  
       }
 
     },
+
+    hitDealer: function(dealer) {
+    },
   
     determineWinner: function() {
       game.calculateHands();
-      winner = []
-      if( (player.value>game.dealer.value && player.value <= 21) ||
-          (player.value <= 21 && game.dealer.value > 21) ){
+      winner = [];
+      winnings = 0;
+      if( (player.hand.value>game.dealer.hand.value && player.hand.value <= 21) ||
+          (player.hand.value <= 21 && game.dealer.hand.value > 21) ){
         logger.info("Player has won!");
-        if(player.hand.length==2 && player.value==21){
+
+        if(player.hand.length==2 && player.hand.value==21 && player.split.cards.length==0){
           logger.info("Player got blackjack!")
           player.balance += player.bet*2 + Math.floor(player.bet/2);
+          winnings += player.bet*2 + Math.floor(player.bet/2);
         }
         else{
           player.balance += player.bet*2;
+          winnings += player.bet*2;
         }
+
         winner.push(2);
       }
-      if( (player.splitValue>game.dealer.value && player.splitValue <= 21) ||
-          (player.splitValue <= 21 && game.dealer.value > 21 && player.splitValue != 0) ){
+
+      if( (player.split.cards.length!=0) && 
+          ((player.split.value>game.dealer.hand.value && player.split.value <= 21) ||
+          (player.split.value <= 21 && game.dealer.hand.value > 21)) ){
         logger.info("Player split hand has won!");
         player.balance += player.bet*2;
+        winnings += player.bet*2;
         winner.push(3);
       }
-      if(winner.length===0 && game.dealer.value <= 21 && 
-        ( (player.value>21 && player.splitValue>21) || 
-          (game.dealer.value>player.value && game.dealer.value>player.splitValue))){
+
+      if(winner.length===0  && game.dealer.hand.value <= 21){
         logger.info("Dealer has won!");
         winner.push(1);
       }
-      if(player.insured && game.dealer.hand.length==2 && game.dealer.value==21){
+
+      if(winner.length===0){
+        logger.info("Push!");
+        player.balance += player.bet;
+        winner.push(5);
+      }
+
+      if(player.insured && game.dealer.hand.length==2 && game.dealer.hand.value==21){
         logger.info("Player won insurance!");
         player.balance+=player.bet * 1.5;
+        winnings+=player.bet * 1.5;
         winner.push(4);
       }
-      logger.info("Sending following winner data: " + JSON.stringify(winner));
+      
       player.bet=0;
-      return winner;
+      return {"winner" : winner, "winnings": winnings};
   
     },
   
     finishGame: function() {
-      winner = game.determineWinner();
+      data = game.determineWinner();
       game.refreshTable();
-      io.sockets.connected[player.sid].emit('endGame', winner);
+      logger.info("Sending following winner data: " + JSON.stringify(data));
+      io.sockets.connected[player.sid].emit('endGame', data);
     },
   
   
@@ -299,10 +325,8 @@ io.on('connection', function(client) {
       game.inProgress = true;
       game.deck = game.generateDeck();
       game.deal();
-      game.firstRound = true;
       game.calculateHands();
       game.refreshTable(player);
-  
       logger.info("New Game Started!");
     },
     
@@ -325,28 +349,31 @@ io.on('connection', function(client) {
     insurance: function(){
       logger.info(`Betting insurance`)
       player.insured=true;
+      player.canInsure=false;
       player.balance-=Math.floor(player.bet/2);
       game.refreshTable();
     },
   
     stay: function(player) {
-      player.canSplit = false;
-      player.playing = false;
-      player.canHit = false;
+      player.hand.canSplit = false;
+      player.hand.canHit = false;
       player.canDouble = false;
+      if(player.split.canHit==false && player.hand.canHit==false){
+        player.playing=false;
+      }
       game.refreshTable(player);
     },
   
     hit: function(player) {
       player.canDouble = false;
-      player.canSplit = false;
-      player.hand.push(game.deck.pop());
-      player.hand[player.hand.length-1].hidden = false;
+      player.hand.canSplit = false;
+      player.hand.cards.push(game.deck.pop());
       game.calculateHands();
-      if(player.value > 21){
-        player.canHit = false;
-        player.bust = true;
-        player.playing = false;
+      if(player.hand.value > 21){
+        player.hand.canHit = false;
+      }
+      if(player.split.canHit==false && player.hand.canHit==false){
+        player.playing=false;
       }
       game.refreshTable(player);
     },
@@ -354,34 +381,35 @@ io.on('connection', function(client) {
     double: function(player) {
       player.balance-=player.bet;
       player.bet+=player.bet;
-      player.canHit = false;
+      player.hand.canHit = false;
       game.hit(player);
     },
 
     staySplit: function(player) {
-      player.playingSplit = false;
-      player.splitCanHit = false;
+      player.split.canHit = false;
+      if(player.split.canHit==false && player.hand.canHit==false){
+        player.playing=false;
+      }
       game.refreshTable(player);
     },
   
     hitSplit: function(player) {
-      player.split.push(game.deck.pop());
-      player.split[player.split.length-1].hidden = false;
+      player.split.cards.push(game.deck.pop());
       game.calculateHands();
-      if(player.splitValue > 21){
-        player.splitCanHit = false;
-        player.splitBust = true;
-        player.playingSplit = false;
+      if(player.split.value > 21){
+        player.split.canHit = false;
+      }
+      if(player.split.canHit==false && player.hand.canHit==false){
+        player.playing=false;
       }
       game.refreshTable(player);
     },
   
     split: function() {
       player.balance-=player.bet;
-      player.canSplit = false;
-      player.splitCanHit = true;
-      player.playingSplit = true;
-      player.split.push(player.hand.pop());
+      player.hand.canSplit = false;
+      player.split.canHit = true;
+      player.split.cards.push(player.hand.cards.pop());
       game.refreshTable(player);
     }
   };

@@ -11,11 +11,12 @@
 
     <md-dialog-content>
       <div class="md-dialog-content">
+        <h1 ng-show="push">Push!</h1>
         <h1 ng-show="dealer.winner">You lost!</h1>
         <h1 ng-show="player.winner">Your hand won!</h1>
         <h1 ng-show="player.splitWinner">Your split hand won!</h1>
         <h1 ng-show="player.insuranceWinner">Your insurance bet won!</h1>
-        <h1 ng-show="player.winner || player.splitWinner || player.insuranceWinner">You recieved ${{ player.bet }}</h1>
+        <h1 ng-show="player.winner || player.splitWinner || player.insuranceWinner">You receive ${{ winnings }}</h1>
       </div>
     </md-dialog-content>
 

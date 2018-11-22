@@ -60,6 +60,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.dealer = {};
   $scope.started = false;
   $scope.cardBack = "cardBack_red2.png";
+  $scope.winnings = 0;
 
   $scope.showHelp = function(ev) {
     $mdDialog.show({
@@ -96,6 +97,10 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     .then(function(cardBack) {
       $scope.cardBack = cardBack;
     });
+  };
+
+  $scope.login = function(ev) {
+    //TODO
   };
 
   $scope.bet = function(amount) {
@@ -151,30 +156,33 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   socket.on("endGame", function(data) {
     console.log(`Recieved end game signal. Winner is:`)
     console.log(data);
+    winner = data['winner'];
+    $scope.winnings = data['winnings'];
     $scope.inProgress = false;
-    if(data.includes(1)){
+    if(winner.includes(1)){
       console.log("dealer win");
       $scope.dealer.winner = true;
     }
-    if(data.includes(2)){
+    if(winner.includes(2)){
       console.log("player win");
       $scope.player.winner = true;
     }
-    if(data.includes(3)){
+    if(winner.includes(3)){
       console.log("player split hand win");
       $scope.player.splitWinner = true;
     }
-    if(data.includes(4)){
+    if(winner.includes(4)){
       console.log("player insurance win");
       $scope.player.insuranceWinner = true;
     }
-    if(data.length==0 || (data.length==1 && data[0]==4)){
-      console.log("tie");
-      $scope.tie = true;
+    if(winner.includes(5)){
+      console.log("push");
+      $scope.push = true;
     }
     var audio = new Audio('assets/sounds/hit.ogg');
     audio.play();
     $scope.showResults();
+    $scope.started = false;
   });
 
   // when an action is complete, refresh the data
@@ -182,18 +190,24 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     var audio = new Audio('assets/sounds/hit.ogg');
     if(!$scope.started){
       audio.play();
+      $scope.player = {};
+      $scope.dealer = {};
+      $scope.push = false;
+      $scope.winnings = 0;
     }
+    else if($scope.player!=={} && ($scope.player.hand.cards.length < data.me.hand.cards.length || 
+      $scope.player.split.cards.length < data.me.split.cards.length)){
+        audio.play();
+    }
+
     $scope.started = true;
     console.log(`Recieved game state update:`)
     console.log(data);
     $scope.inProgress = true;
     $scope.dealer = data.dealer;
-    if($scope.player!=={} && ($scope.player.hand.length < data.me.hand.length || 
-      $scope.player.split.length < data.me.split.length)){
-        audio.play();
-    }
     $scope.player = data.me;
   });
+
   socket.on("updateBet", function(data) {
     if($scope.player.bet!=data.bet){
       var audio = new Audio('assets/sounds/bet.ogg');
@@ -207,6 +221,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.debug = debug;
     $scope.inProgress = false;
     $scope.player = player;
+    $scope.dealer = {};
   });
 
 });
