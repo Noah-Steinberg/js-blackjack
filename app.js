@@ -370,7 +370,7 @@ io.on('connection', function(client) {
       player.balance-=player.bet;
       player.bet+=player.bet;
       player.hand.canHit = false;
-      game.hit(player);
+      game.hit(player.hand);
     },
   
     split: function() {
@@ -417,6 +417,11 @@ io.on('connection', function(client) {
 
   client.on('double', function() {
     game.double(player);
+    player.canDouble = false;
+    if(player.split.canHit==false && player.hand.canHit==false){
+      player.playing=false;
+  }
+  game.refreshTable(player);
   });
 
   client.on('split', function() {
