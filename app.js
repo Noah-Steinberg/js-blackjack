@@ -92,6 +92,7 @@ io.on('connection', function(client) {
     canDouble: false,
     canInsure: false,
   };
+
   var game = {
 
     reset: function(){
@@ -161,6 +162,7 @@ io.on('connection', function(client) {
       if(card.rank==card2.rank && player.balance>=player.bet){
         player.hand.canSplit = true;
       }
+
       if(player.balance>=player.bet){
         player.canDouble = true;
       }
@@ -256,9 +258,6 @@ io.on('connection', function(client) {
       }
 
     },
-
-    hitDealer: function(dealer) {
-    },
   
     determineWinner: function() {
       game.calculateHands();
@@ -320,7 +319,6 @@ io.on('connection', function(client) {
       io.sockets.connected[player.sid].emit('endGame', data);
     },
   
-  
     start: function() {
       game.inProgress = true;
       game.deck = game.generateDeck();
@@ -354,28 +352,18 @@ io.on('connection', function(client) {
       game.refreshTable();
     },
   
-    stay: function(player) {
-      player.hand.canSplit = false;
-      player.hand.canHit = false;
-      player.canDouble = false;
-      if(player.split.canHit==false && player.hand.canHit==false){
-        player.playing=false;
-      }
-      game.refreshTable(player);
+    stay: function(hand) {
+      hand.canSplit = false;
+      hand.canHit = false;
     },
   
-    hit: function(player) {
-      player.canDouble = false;
-      player.hand.canSplit = false;
-      player.hand.cards.push(game.deck.pop());
+    hit: function(hand) {
+      hand.canSplit = false;
+      hand.cards.push(game.deck.pop());
       game.calculateHands();
-      if(player.hand.value > 21){
-        player.hand.canHit = false;
+      if(hand.value > 21){
+        hand.canHit = false;
       }
-      if(player.split.canHit==false && player.hand.canHit==false){
-        player.playing=false;
-      }
-      game.refreshTable(player);
     },
 
     double: function(player) {
@@ -383,26 +371,6 @@ io.on('connection', function(client) {
       player.bet+=player.bet;
       player.hand.canHit = false;
       game.hit(player);
-    },
-
-    staySplit: function(player) {
-      player.split.canHit = false;
-      if(player.split.canHit==false && player.hand.canHit==false){
-        player.playing=false;
-      }
-      game.refreshTable(player);
-    },
-  
-    hitSplit: function(player) {
-      player.split.cards.push(game.deck.pop());
-      game.calculateHands();
-      if(player.split.value > 21){
-        player.split.canHit = false;
-      }
-      if(player.split.canHit==false && player.hand.canHit==false){
-        player.playing=false;
-      }
-      game.refreshTable(player);
     },
   
     split: function() {
@@ -420,18 +388,31 @@ io.on('connection', function(client) {
   client.on('bet', function(amount) {
     game.bet(amount);
   });
+
   client.on('resetBet', function(amount) {
     game.resetBet();
   });
+
   client.on('insurance', function() {
     game.insurance(player);
   });
 
-  client.on('hit', function() {
-    game.hit(player);
+  client.on('hit', function(split) {
+    split ? game.hit(player.split) : game.hit(player.hand);
+    player.canDouble = false;
+    if(player.split.canHit==false && player.hand.canHit==false){
+      player.playing=false;
+    }
+    game.refreshTable(player);
   });
-  client.on('stay', function() {
-    game.stay(player);
+
+  client.on('stay', function(split) {
+    split ? game.stay(player.split) : game.stay(player.hand);
+    player.canDouble = false;
+    if(player.split.canHit==false && player.hand.canHit==false){
+        player.playing=false;
+    }
+    game.refreshTable(player);
   });
 
   client.on('double', function() {
@@ -440,12 +421,6 @@ io.on('connection', function(client) {
 
   client.on('split', function() {
     game.split();
-  });
-  client.on('hitSplit', function() {
-    game.hitSplit(player);
-  });
-  client.on('staySplit', function() {
-    game.staySplit(player);
   });
 
   client.on('newGame', function() {

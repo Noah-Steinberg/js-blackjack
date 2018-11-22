@@ -123,30 +123,21 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     socket.emit("split")
   };
 
-  $scope.hit = function() {
+  $scope.hit = function(split) {
     console.log("Sending 'hit' request");
-    socket.emit("hit");
+    socket.emit("hit", split);
   };
 
-  $scope.stay = function() {
+  $scope.stay = function(split) {
     console.log("Sending 'stay' request");
-    socket.emit("stay");
+    socket.emit("stay", split);
   };
 
   $scope.double = function() {
-    console.log("Sending 'hit' request");
+    console.log("Sending 'double' request");
     socket.emit("double");
   };
 
-  $scope.hitSplit = function() {
-    console.log("Sending 'hit' request for split hand");
-    socket.emit("hitSplit");
-  };
-
-  $scope.staySplit = function() {
-    console.log("Sending 'stay' request for split hand");
-    socket.emit("staySplit");
-  };
 
   $scope.newGame = function() {
     console.log("Sending 'new game' request");
