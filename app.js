@@ -260,55 +260,109 @@ io.on('connection', function(client) {
     },
   
     determineWinner: function() {
+      /*
+       * 1 represents dealer, 
+       * 2 represents player, 
+       * 3 represents split,
+       * 4 represents insurance
+       */
       game.calculateHands();
-      winner = [];
+      winners = [];
+      losers = [];
+      ties = [];
       winnings = 0;
-      if( (player.hand.value>game.dealer.hand.value && player.hand.value <= 21) ||
-          (player.hand.value <= 21 && game.dealer.hand.value > 21) ){
-        logger.info("Player has won!");
 
-        if(player.hand.cards.length===2 && player.hand.value==21 && player.split.cards.length===0){
-          logger.info("Player got blackjack!")
-          player.balance += player.bet*2 + Math.floor(player.bet/2);
-          winnings += player.bet*2 + Math.floor(player.bet/2);
+      //Dealer Beats Player Main Hand (through bust or otherwise)
+      if(game.dealer.hand.value<=21 && 
+        (game.dealer.hand.value > player.hand.value ||  player.hand.value > 21)){
+        logger.info("Dealer beat player hand!");
+        winners.push(1);
+        losers.push(2);
+        winnings-=player.bet;
+      }
+
+      //Dealer Beats Player Split Hand (if exists) (through bust or otherwise)
+      if(player.split.cards.length>0 && game.dealer.hand.value<=21 && 
+        (game.dealer.hand.value > player.split.value || player.split.value > 21)){
+          logger.info("Dealer beat player split!");
+        if(!winners.includes(1)){
+          winners.push(1);
         }
-        else{
-          player.balance += player.bet*2;
-          winnings += player.bet*2;
+        losers.push(3);
+        winnings-=player.bet;
+      }
+
+      //Player Beats Dealer Main Hand (through bust or otherwise)
+      if(player.hand.value<=21 && 
+        (player.hand.value > game.dealer.hand.value ||  game.dealer.hand.value > 21)){
+          logger.info("Player hand beat dealer!");
+          winners.push(2);
+          losers.push(1);
+          winnings+=player.bet;
+          player.balance+=player.bet*2;
+          if(player.split.cards.length===0 && player.hand.cards.length===2 && player.hand.value===21){
+            logger.info("Player got blackjack!");
+            player.balance+=Math.floor(player.bet*0.5);
+          }
+      }
+
+      //Player Split Hand Beats Dealer Hand (if exists) (through bust or otherwise)
+      if(player.split.cards.length>0 && player.split.value<=21 && 
+        (player.split.value > game.dealer.hand.value ||  game.dealer.hand.value > 21)){
+          logger.info("Player split beat dealer!");
+          winners.push(3);
+          if(!losers.includes(1)){
+            losers.push(1);
+          }
+          winnings+=player.bet;
+          player.balance+=player.bet*2;
+      }
+
+      //One or More Ties Exists
+      //Everyone Busted
+      if(winners.size===0 && losers.size===0){
+        logger.info("Everyone Busted!");
+        ties.push([1,2,3]);
+        player.balance+=player.bet;
+      }
+      //Player hand or split and Dealer Busted
+      else if((player.hand.value > 21 || player.split.value > 21) &&  game.dealer.hand.value > 21){
+        if(player.hand.value > 21){
+          logger.info("Player hand and dealer busted!");
+          player.balance+=player.bet;
+          ties.push([1, 2]);
         }
-
-        winner.push(2);
+        if(player.split.cards.length>0 && player.split.value > 21){
+          logger.info("Player split and dealer busted!");
+          player.balance+=player.bet;
+          ties.push([1, 3]);
+        }
+      }
+      //Player hand or split and Dealer tied
+      else if(player.hand.value===game.dealer.hand.value || player.split.value===game.dealer.hand.value){
+        if(player.hand.value===game.dealer.hand.value){
+          logger.info("Player hand and dealer tied!");
+          player.balance+=player.bet;
+          ties.push([1, 2]);
+        }
+        if(player.split.cards.length>0 && player.split.value===game.dealer.hand.value){
+          logger.info("Player split and dealer tied!");
+          player.balance+=player.bet;
+          ties.push([1, 3]);
+        }
       }
 
-      if( (player.split.cards.length!=0) && 
-          ((player.split.value>game.dealer.hand.value && player.split.value <= 21) ||
-          (player.split.value <= 21 && game.dealer.hand.value > 21)) ){
-        logger.info("Player split hand has won!");
-        player.balance += player.bet*2;
-        winnings += player.bet*2;
-        winner.push(3);
+      //Insurance Bet Win
+      if(player.insured && game.dealer.hand.cards.length===2 && game.dealer.hand.value===21){
+        logger.info("Player won insurance bet!");
+        winners.push(4);
+        winnings+=player.bet;
+        player.balance+=Math.floor(player.bet*1.5)
       }
-
-      if(winner.length===0  && game.dealer.hand.value <= 21){
-        logger.info("Dealer has won!");
-        winner.push(1);
-      }
-
-      if(winner.length===0){
-        logger.info("Push!");
-        player.balance += player.bet;
-        winner.push(5);
-      }
-
-      if(player.insured && game.dealer.hand.cards.length==2 && game.dealer.hand.value==21){
-        logger.info("Player won insurance!");
-        player.balance+=player.bet * 1.5;
-        winnings+=player.bet * 1.5;
-        winner.push(4);
-      }
-      
+      logger.info(`Player net; $${winnings}`);
       player.bet=0;
-      return {"winner" : winner, "winnings": winnings};
+      logger.info(`${winners} ${losers} ${ties} ${winnings}`);
+      return {"winners" : winners, "losers": losers, "ties": ties, "winnings": winnings};
   
     },
   

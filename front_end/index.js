@@ -145,35 +145,15 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   };
 
   socket.on("endGame", function(data) {
-    console.log(`Recieved end game signal. Winner is:`)
-    console.log(data);
-    winner = data['winner'];
-    $scope.winnings = data['winnings'];
-    $scope.inProgress = false;
-    if(winner.includes(1)){
-      console.log("dealer win");
-      $scope.dealer.winner = true;
-    }
-    if(winner.includes(2)){
-      console.log("player win");
-      $scope.player.winner = true;
-    }
-    if(winner.includes(3)){
-      console.log("player split hand win");
-      $scope.player.splitWinner = true;
-    }
-    if(winner.includes(4)){
-      console.log("player insurance win");
-      $scope.player.insuranceWinner = true;
-    }
-    if(winner.includes(5)){
-      console.log("push");
-      $scope.push = true;
-    }
+    $scope.winners = data.winners;
+    $scope.losers = data.losers;
+    $scope.ties = data.ties;
+    $scope.winnings = data.winnings;
     var audio = new Audio('assets/sounds/hit.ogg');
     audio.play();
     $scope.showResults();
-    $scope.started = false;
+    $scope.started=false;
+    $scope.inProgress=false;
   });
 
   // when an action is complete, refresh the data
