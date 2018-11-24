@@ -68,6 +68,17 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     })
   };
 
+  $scope.showHelp = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'alerts/help.ejs',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+  };
+
   $scope.showMessage = function(ev) {
     $mdDialog.show({
       controller: DialogController,

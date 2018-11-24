@@ -423,7 +423,7 @@ io.on('connection', function(client) {
       player.canInsure=false;
       player.balance-=Math.floor(player.bet/2);
       game.refreshTable();
-      return { message: `You bet ${Math.floor(player.bet/2)} on insurance!`, alert_user: true };
+      return { message: `You bet $${Math.floor(player.bet/2)} on insurance!`, alert_user: true };
     },
   
     stay: function(hand) {
