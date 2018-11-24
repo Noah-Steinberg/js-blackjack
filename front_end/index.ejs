@@ -2,7 +2,7 @@
 
 <html ng-app="blackJackApp">
   <head>
-    <title>Let's Play: BlackJack</title>
+    <title>BlackJack Demo</title>
     <script src="/scripts/angular/angular.js"></script>
     <script src="/scripts/angular-animate/angular-animate.js"></script>
     <script src="/scripts/angular-aria/angular-aria.js"></script>
@@ -18,65 +18,19 @@
     <md-toolbar layout="row">
       <div class="md-toolbar-tools">
         <h1>BlackJack Demo</h1>
+        <md-button class="md-accent md-raised" ng-click="showIntro()" id="help">Help</md-button>
+        <md-button class="md-accent md-raised" ng-click="chooseCardBack()" id="cardBack">Choose Card Back</md-button>
       </div>
     </md-toolbar>
     <div layout="row" flex >
-      <md-sidenav flex layout="column" class="md-sidenav-left md-whiteframe-4dp" md-component-id="left" md-is-locked-open="true">
-          <md-toolbar layout="row" ng-class="{'md-accent': true}">
-              <div class="md-toolbar-tools">
-                <h1>Balance: ${{player.balance}}</h1>
-              </div>
-            </md-toolbar>
-          <md-toolbar layout="row">
-              <div class="md-toolbar-tools">
-                <h1>Bet: ${{player.bet}}</h1>
-              </div>
-            </md-toolbar>
-            <md-card-content layout="row" layout-align="space-around center">
-              <div class="container" ng-click="bet(5)">
-                <img src="/assets/images/chips/5.png"  ng-disabled="inProgress">
-                <div class=centered>5</div>
-              </div>
-              <div class="container" ng-click="bet(25)">
-                  <img src="/assets/images/chips/25.png" ng-disabled="inProgress">
-                  <div class=centered>25</div>
-                </div>
-              <div class="container" ng-click="bet(50)">
-                  <img src="/assets/images/chips/50.png" ng-disabled="inProgress">
-                  <div class=centered>50</div>
-              </div>
-              <div class="container" ng-click="bet(100)">
-                <img src="/assets/images/chips/100.png" ng-disabled="inProgress">
-                <div class=centered>100</div>
-              </div>
-            </md-card-content>
-            <md-button class="md-accent md-raised" ng-click="resetBet()" id="resetbet" ng-disabled="inProgress">Reset Bet</md-button>
-            <md-button class="md-accent md-raised" ng-click="newGame()" id="deal" ng-disabled="inProgress || player.bet<5">Deal</md-button>
-        <md-toolbar layout="row">
-          <div class="md-toolbar-tools">
-            <h1>Game Controls</h1>
-          </div>
-        </md-toolbar>
-        <md-button class="md-accent md-raised" ng-click="double()" id="double" ng-disabled="!player.canDouble">Double</md-button>
-        <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-disabled="!player.hand.canSplit">Split</md-button>
-        <md-button class="md-accent md-raised" ng-click="insurance()" id="insurance" ng-disabled="!player.canInsure">Insurance</md-button>
-        <md-toolbar layout="row">
-          <div class="md-toolbar-tools">
-            <h1>Other</h1>
-          </div>
-        </md-toolbar>
-        <md-button class="md-accent md-raised" ng-click="showHelp()" id="help">Help</md-button>
-        <md-button class="md-accent md-raised" ng-click="chooseCardBack()" id="help">Choose Card Back</md-button>
-        </md-sidenav>
       <div layout="column" flex id="content">
         <md-content layout="column" flex class="md-padding">
           <md-card id="dealer-hand" ng-if="dealer.hand!==undefined">
             <md-toolbar ng-class="{'md-accent': true}" layout="row">
               <div class="md-toolbar-tools">
                 <h1>
-                  <strong class="winner" ng-show="dealer.winner">[WINNER!] </strong>
-                  <strong class="push" ng-show="push">[PUSH!]</strong>
-                  <strong class="winner" ng-show="dealer.hand.value > 21">[BUST!] </strong>Dealer <span ng-if="!inProgress">(Value: {{dealer.hand.value}})</span>
+                  <strong class="busted" ng-show="dealer.hand.value > 21">[BUSTED!] </strong>
+                  Dealer <span ng-if="!inProgress">(Value: {{dealer.hand.value}})</span>
                 </h1>
               </div>
             </md-toolbar>
@@ -93,11 +47,13 @@
               <md-toolbar layout="row">
                 <div class="md-toolbar-tools">
                   <h1>
-                    Your hand (Value: <span id="handValue">{{player.hand.value}}</span>)
+                      <strong class="busted" ng-show="player.hand.value > 21">[BUSTED!] </strong>
+                      Your hand (Value: <span id="handValue">{{player.hand.value}}</span>)
                   </h1>
                   <div class=hand-controls>
                       <md-button class="md-accent md-raised" ng-click="hit(false)" id="hit" ng-disabled="!player.hand.canHit" flex >Hit</md-button>
                       <md-button class="md-accent md-raised" ng-click="stay(false)" id="stay" ng-disabled="!player.hand.canHit" flex >Stay</md-button>
+                      <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-if="player.hand.canSplit">Split</md-button>
                   </div>
                 </div>
 
@@ -113,6 +69,7 @@
               <md-toolbar layout="row">
                 <div class="md-toolbar-tools">
                   <h1>
+                    <strong class="busted" ng-show="player.split.value > 21">[BUSTED!] </strong>
                     Split Hand (Value: <span id="splitValue">{{player.split.value}}</span>)
                   </h1>
                   <div class=hand-controls>
@@ -128,6 +85,60 @@
               </md-card-content>
             </md-card>
           </div>
+
+          <div style="text-align:center">
+            <div style="display:inline-block">
+                <div layout="row">
+                    <md-card id="betting-controls">
+                      <md-toolbar layout="row" ng-class="{'md-accent': true}">
+                          <div class="md-toolbar-tools">
+                            <h1>Balance: ${{player.balance}}</h1>
+                            <span flex></span>
+                            <h1>Total Wager: ${{player.bet}}</h1>
+                          </div>
+                        </md-toolbar>
+                        <md-card-content layout="row" layout-align="space-around center" flex>
+                          <div layout="row" layout-sm="column">
+                            <div layout="row" flex>
+                              <div flex>
+                                <div class="container" ng-click="bet(5)" ng-disabled="inProgress">
+                                    <img src="/assets/images/chips/5.png" >
+                                  </div>
+                              </div>
+                              <div flex>
+                                <div class="container" ng-click="bet(25)" ng-disabled="inProgress">
+                                    <img src="/assets/images/chips/25.png">
+                                  </div>
+                              </div>
+                            </div>
+                            <div layout="row" flex>
+                              <div flex>
+                                <div class="container" ng-click="bet(50)" ng-disabled="inProgress">
+                                    <img src="/assets/images/chips/50.png">
+                                </div>
+                              </div>
+                              <div flex>
+                                <div class="container" ng-click="bet(100)" ng-disabled="inProgress">
+                                    <img src="/assets/images/chips/100.png">
+                                  </div>
+                              </div>           
+                            </div>
+                          </div> 
+                          <div class="container" layout="column">
+                              <md-button class="md-accent md-raised" ng-click="resetBet()" id="resetbet" ng-disabled="inProgress">Reset Bet</md-button>
+                              <md-button class="md-accent md-raised" ng-click="newGame()" id="deal" ng-disabled="inProgress || player.bet<5">Deal</md-button>
+                          </div>
+                          <div class="container" layout="column">
+                              <md-button class="md-accent md-raised" ng-click="insurance()" id="insurance" ng-if="player.canInsure">Insurance</md-button>
+                              <md-button class="md-accent md-raised" ng-click="double()" id="double" ng-if="player.canDouble">Double</md-button>
+                          </div>
+                        </md-card-content>
+                        
+                    </md-card>
+                  </div>
+            </div>
+          </div>
+
         </md-content>
       </div>
     </div>

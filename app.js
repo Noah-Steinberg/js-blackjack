@@ -128,6 +128,7 @@ io.on('connection', function(client) {
         playing: true
        };
       game.start();
+      return { message: "Reset Successful!", alert_user: false }
     },
   
     generateDeck: function() {
@@ -159,14 +160,7 @@ io.on('connection', function(client) {
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
       player.hand.cards.push(card2);
-      if(card.rank==card2.rank && player.balance>=player.bet){
-        player.hand.canSplit = true;
-      }
 
-      if(player.balance>=player.bet){
-        player.canDouble = true;
-      }
-  
       card = game.deck.pop();
       card.hidden = true;
       logger.info("Dealer Dealt a " + card.rank + card.suit + " face down");
@@ -180,6 +174,13 @@ io.on('connection', function(client) {
       if(card.rank==="A" && player.balance >= Math.floor(player.bet/2)){
         player.canInsure = true;
       }
+      if(card.rank==card2.rank && player.balance>=player.bet){
+        player.hand.canSplit = true;
+      }
+      if(player.balance>=player.bet){
+        player.canDouble = true;
+      }
+  
     },
   
     // Emit the state of the table to the player, stripping data
@@ -384,11 +385,28 @@ io.on('connection', function(client) {
     
     bet: function(amount){
       if(player.balance>=amount && player.bet+amount<=500){
-        logger.info(`Betting ${amount}`)
+        logger.info(`Betting ${amount}`);
         player.balance-=amount;
         player.bet+=amount;
+        data = {
+          message: "Bet Successful!", 
+          alert_user: false
+        };
+      }
+      else if(player.balance<amount){
+        data = {
+          message: "You don't have enough money!",
+          alert_user: true
+        };
+      }
+      else{
+        data = {
+          message: "You can only bet a maximum of $500!",
+          alert_user: true
+        };
       }
       io.sockets.connected[player.sid].emit('updateBet', player);
+      return data;
     },
 
     resetBet: function(){
@@ -396,6 +414,7 @@ io.on('connection', function(client) {
       player.balance+=player.bet;
       player.bet=0;
       io.sockets.connected[player.sid].emit('updateBet', player);
+      return { message: "Reset Successful!", alert_user: false };
     },
 
     insurance: function(){
@@ -404,27 +423,33 @@ io.on('connection', function(client) {
       player.canInsure=false;
       player.balance-=Math.floor(player.bet/2);
       game.refreshTable();
+      return { message: `You bet ${Math.floor(player.bet/2)} on insurance!`, alert_user: true };
     },
   
     stay: function(hand) {
       hand.canSplit = false;
       hand.canHit = false;
+      return { message: "Stay Successful!", alert_user: false };
     },
   
     hit: function(hand) {
+      data = { message: "Hit Successful!", alert_user: false };
       hand.canSplit = false;
       hand.cards.push(game.deck.pop());
       game.calculateHands();
       if(hand.value > 21){
         hand.canHit = false;
+        data = { message: "You busted!", alert_user: true };
       }
+      return data;
     },
 
     double: function(player) {
       player.balance-=player.bet;
       player.bet+=player.bet;
       player.hand.canHit = false;
-      game.hit(player.hand);
+      data = game.hit(player.hand);
+      return data;
     },
   
     split: function() {
@@ -432,58 +457,76 @@ io.on('connection', function(client) {
       player.hand.canSplit = false;
       player.split.canHit = true;
       player.split.cards.push(player.hand.cards.pop());
+      if(player.split.cards[0].rank==="A" && player.hand.cards[0].rank==="A"){
+        game.hit(player.split);
+        player.split.canHit = false;
+        game.hit(player.hand);
+        player.hand.canHit = false;
+        player.playing = false;
+      }
       game.refreshTable(player);
+      return { message: "Split Successful!", alert_user: false };
     }
   };
 
   askSid = client.id;
   io.sockets.connected[client.id].emit('connected', debug, player);
 
-  client.on('bet', function(amount) {
-    game.bet(amount);
+  client.on('bet', function(amount, callback) {
+    data = game.bet(amount);
+    callback(data.message, data.alert_user);
   });
 
-  client.on('resetBet', function(amount) {
-    game.resetBet();
+  client.on('resetBet', function(_data, callback) {
+    data = game.resetBet();
+    callback(data.message, data.alert_user);
   });
 
-  client.on('insurance', function() {
-    game.insurance(player);
+  client.on('insurance', function(_data, callback) {
+    data = game.insurance(player);
+    callback(data.message, data.alert_user);
   });
 
-  client.on('hit', function(split) {
-    split ? game.hit(player.split) : game.hit(player.hand);
+  client.on('hit', function(split, callback) {
+    data = split ? game.hit(player.split) : game.hit(player.hand);
     player.canDouble = false;
+    player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
       player.playing=false;
     }
     game.refreshTable(player);
+    callback(data.message, data.alert_user);
   });
 
-  client.on('stay', function(split) {
-    split ? game.stay(player.split) : game.stay(player.hand);
+  client.on('stay', function(split, callback) {
+    data = split ? game.stay(player.split) : game.stay(player.hand);
     player.canDouble = false;
+    player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
         player.playing=false;
     }
     game.refreshTable(player);
+    callback(data.message, data.alert_user);
   });
 
-  client.on('double', function() {
-    game.double(player);
+  client.on('double', function(_data, callback) {
+    data = game.double(player);
     player.canDouble = false;
+    player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
       player.playing=false;
-  }
-  game.refreshTable(player);
+    }
+    game.refreshTable(player);
+    callback(data.message, data.alert_user);
   });
 
-  client.on('split', function() {
-    game.split();
+  client.on('split', function(_data, callback) {
+    data = game.split();
+    callback(data.message, data.alert_user);
   });
 
   client.on('newGame', function() {
-      game.reset();
-  })
+      data = game.reset();
+  });
 });
 
