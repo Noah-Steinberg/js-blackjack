@@ -46,7 +46,7 @@ blackJackApp.config(['$routeProvider', '$mdThemingProvider', function($routeProv
     controller: 'mainController'
   });
 
-  $mdThemingProvider.theme('default').primaryPalette('grey').accentPalette('red');
+  $mdThemingProvider.theme('default').primaryPalette('grey').accentPalette('blue');
 
 }]);
 

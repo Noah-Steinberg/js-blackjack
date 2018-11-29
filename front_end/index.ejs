@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+ 
 <html ng-app="blackJackApp">
   <head>
     <title>BlackJack Demo</title>
@@ -15,8 +15,8 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body layout="column" ng-controller="mainController as vm">
-    <md-toolbar layout="row">
-      <div class="md-toolbar-tools">
+    <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
+      <div class="md-toolbar-tools" >
         <h1>BlackJack Demo</h1>
         <md-button class="md-accent md-raised" ng-click="showHelp()" id="help">Help</md-button>
         <md-button class="md-accent md-raised" ng-click="chooseCardBack()" id="cardBack">Choose Card Back</md-button>
@@ -24,10 +24,10 @@
     </md-toolbar>
     <div layout="row" flex >
       <div layout="column" flex id="content">
-        <md-content layout="column" flex class="md-padding">
-          <md-card id="dealer-hand" ng-if="dealer.hand!==undefined">
+        <md-content layout="column" flex class="md-padding" ng-style="{backgroundColor: 'green', color: 'white'}">
+          <md-card id="dealer-hand" ng-if="dealer.hand!==undefined" ng-style="{backgroundColor: 'green', color: 'white'}">
             <md-toolbar ng-class="{'md-accent': true}" layout="row">
-              <div class="md-toolbar-tools">
+              <div class="md-toolbar-tools" ng-style="{backgroundColor: 'black', color: 'white'}">
                 <h1>
                   <strong class="busted" ng-show="dealer.hand.value > 21">[BUSTED!] </strong>
                   Dealer <span ng-if="!inProgress">(Value: {{dealer.hand.value}})</span>
@@ -43,8 +43,8 @@
           </md-card>
 
           <div layout="row" >
-            <md-card flex id="my-hand" ng-if="player.hand.cards.length!==0">
-              <md-toolbar layout="row">
+            <md-card flex id="my-hand" ng-if="player.hand.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
+              <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
                 <div class="md-toolbar-tools">
                   <h1>
                       <strong class="busted" ng-show="player.hand.value > 21">[BUSTED!] </strong>
@@ -65,8 +65,8 @@
               </md-card-content>
             </md-card>
 
-            <md-card flex id="my-split-hand" ng-if="player.split.cards.length!==0">
-              <md-toolbar layout="row">
+            <md-card flex id="my-split-hand" ng-if="player.split.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
+              <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
                 <div class="md-toolbar-tools">
                   <h1>
                     <strong class="busted" ng-show="player.split.value > 21">[BUSTED!] </strong>
@@ -89,8 +89,8 @@
           <div style="text-align:center">
             <div style="display:inline-block">
                 <div layout="row">
-                    <md-card id="betting-controls">
-                      <md-toolbar layout="row" ng-class="{'md-accent': true}">
+                    <md-card id="betting-controls" ng-style="{backgroundColor: 'green', color: 'white'}">
+                      <md-toolbar layout="row" ng-class="{'md-accent': true}" ng-style="{backgroundColor: 'black', color: 'white'}">
                           <div class="md-toolbar-tools">
                             <h1>Balance: ${{player.balance}}</h1>
                             <span flex></span>
