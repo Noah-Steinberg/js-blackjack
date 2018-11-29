@@ -160,6 +160,9 @@ io.on('connection', function(client) {
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
       player.hand.cards.push(card2);
+      if(card.rank==card2.rank && player.balance>=player.bet){
+        player.hand.canSplit = true;
+      }
 
       card = game.deck.pop();
       card.hidden = true;
@@ -173,9 +176,6 @@ io.on('connection', function(client) {
 
       if(card.rank==="A" && player.balance >= Math.floor(player.bet/2)){
         player.canInsure = true;
-      }
-      if(card.rank==card2.rank && player.balance>=player.bet){
-        player.hand.canSplit = true;
       }
       if(player.balance>=player.bet){
         player.canDouble = true;
