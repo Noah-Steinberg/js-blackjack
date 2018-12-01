@@ -118,7 +118,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     })
     .then(function(card) {
       console.log(card);
-      if($scope.started){
+      if($scope.inProgress){
         console.log("Sending 'hit' request");
         socket.emit("hit", {split: $scope.chooseSplit, card: {rank: card[0], suit: card[1], hidden: false}}, callback);
       }

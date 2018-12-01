@@ -157,7 +157,6 @@ io.on('connection', function(client) {
       game.dealer.hand.cards.push(card);
 
       card = cards && cards[1] ? cards[1] : game.deck.pop();
-      card = game.deck.pop();
       card.hidden = false;
       logger.info("Dealer Dealt a " + card.rank + card.suit);
       game.dealer.hand.cards.push(card);
@@ -232,16 +231,11 @@ io.on('connection', function(client) {
             break;
         }
       }
-      if(aceCount===1){
-        if(value+11>21){
-          value+=1;
-        }
-        else{
-          value+=11;
-        }
+      if(value+11+(aceCount-1)*1<=21){
+        value+=11 + aceCount - 1;
       }
       else{
-        value+=1*aceCount;
+        value+=aceCount;
       }
       return value;
     },
@@ -253,7 +247,7 @@ io.on('connection', function(client) {
     },
   
     playDealer: function() {
-      if(game.dealer.hand.value < 17){
+      if(game.dealer.hand.value < 17 && (player.hand.value <= 21 || (player.split.value <= 21 && player.split.cards.length!=0))){
         game.dealer.hand.cards.push(game.deck.pop());
         game.calculateHands();
         game.refreshTable();
@@ -437,6 +431,7 @@ io.on('connection', function(client) {
     hit: function(hand, card) {
       data = { message: "Hit Successful!", alert_user: false };
       hand.canSplit = false;
+      console.log(card);
       card ? hand.cards.push(card) : hand.cards.push(game.deck.pop());
       game.calculateHands();
       if(hand.value > 21){
@@ -491,7 +486,7 @@ io.on('connection', function(client) {
 
   client.on('hit', function(data , callback) {
     data.card = game.cheating ? data.card : undefined;
-    ret = data.split ? game.hit(player.split) : game.hit(player.hand);
+    ret = data.split ? game.hit(player.split, data.card) : game.hit(player.hand, data.card);
     player.canDouble = false;
     player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
