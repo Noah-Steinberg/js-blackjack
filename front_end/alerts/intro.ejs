@@ -15,7 +15,7 @@
         <p>After closing this dialogue, please click on the chips to place a bet and begin!</p>
         <p>If you need additional help, please see the help button at the top left of the screen.</p>
         <strong>Debug mode has been enabled. This allows viewing of additional output, and also the dealer's "face down" card</strong>
-        <strong>To enable full cheating, please press "Enable Cheating"</strong>
+        <strong ng-if="debug">To enable full cheating, please press "Enable Cheating"</strong>
         <strong ng-if="debug">Cheating enables the player to select all cards dealt on hits and initially. However, 
           it does not allow the selection of the cards that the dealer may recieve from hitting.
         </strong>
@@ -26,7 +26,7 @@
       <md-button ng-click="cancel()">
         Ok
        </md-button>
-       <md-button ng-if="debug" ng-click="choose(true)">
+       <md-button ng-if="debug"ng-click="choose(true)">
         <strong>Enable Cheating</strong>
        </md-button>
     </md-dialog-actions>
