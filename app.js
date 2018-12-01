@@ -132,7 +132,7 @@ io.on('connection', function(client) {
     },
   
     generateDeck: function() {
-      var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9","10", "J", "Q", "K"];
+      var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9","T", "J", "Q", "K"];
       var suits = ["C", "D", "H", "S"];
       var deck = [];
       for (var i = 0; i < suits.length; i++) {
@@ -221,6 +221,7 @@ io.on('connection', function(client) {
           case 'K':
           case 'Q':
           case 'J':
+          case 'T':
             value+=10;
           break;
           case 'A':
