@@ -1,0 +1,186 @@
+
+<md-dialog aria-label="Choose Card Back">
+   <style>
+       img.thumbnail {
+            width:56px;
+            height:76px;
+        }
+    </style>
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+            <h2>{{ message }}</h2>
+        <span flex></span>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content layout="column">
+            <div layout="row">
+                    <div class="container" ng-click="choose('AH', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/AH.png">
+                    </div>
+                    <div class="container" ng-click="choose('2H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/2H.png">
+                    </div>
+                    <div class="container" ng-click="choose('3H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/3H.png">
+                    </div>
+                    <div class="container" ng-click="choose('4H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/4H.png">
+                    </div>
+                    <div class="container" ng-click="choose('5H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/5H.png">
+                    </div>
+                    <div class="container" ng-click="choose('6H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/6H.png">
+                    </div>
+                    <div class="container" ng-click="choose('7H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/7H.png">
+                    </div>
+                    <div class="container" ng-click="choose('8H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/8H.png">
+                    </div>
+                    <div class="container" ng-click="choose('9H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/9H.png">
+                    </div>
+                    <div class="container" ng-click="choose('10H', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/10H.png">
+                    </div>
+                    <div class="container" ng-click="choose('JH', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/JH.png">
+                    </div>
+                    <div class="container" ng-click="choose('QH', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/QH.png">
+                    </div>
+                    <div class="container" ng-click="choose('KH', playerCard)">
+                        <img class="thumbnail" src="/assets/images/cards/KH.png">
+                    </div>
+                  </div>
+                  <div layout="row">
+                        <div class="container" ng-click="choose('AD', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/AD.png">
+                        </div>
+                        <div class="container" ng-click="choose('2D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/2D.png">
+                        </div>
+                        <div class="container" ng-click="choose('3D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/3D.png">
+                        </div>
+                        <div class="container" ng-click="choose('4D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/4D.png">
+                        </div>
+                        <div class="container" ng-click="choose('5D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/5D.png">
+                        </div>
+                        <div class="container" ng-click="choose('6D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/6D.png">
+                        </div>
+                        <div class="container" ng-click="choose('7D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/7D.png">
+                        </div>
+                        <div class="container" ng-click="choose('8D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/8D.png">
+                        </div>
+                        <div class="container" ng-click="choose('9D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/9D.png">
+                        </div>
+                        <div class="container" ng-click="choose('10D', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/10D.png">
+                        </div>
+                        <div class="container" ng-click="choose('JD', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/JD.png">
+                        </div>
+                        <div class="container" ng-click="choose('QD', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/QD.png">
+                        </div>
+                        <div class="container" ng-click="choose('KD', playerCard)">
+                            <img class="thumbnail" src="/assets/images/cards/KD.png">
+                        </div>
+                      </div>
+                      <div layout="row">
+                            <div class="container" ng-click="choose('AC', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/AC.png">
+                            </div>
+                            <div class="container" ng-click="choose('2C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/2C.png">
+                            </div>
+                            <div class="container" ng-click="choose('3C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/3C.png">
+                            </div>
+                            <div class="container" ng-click="choose('4C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/4C.png">
+                            </div>
+                            <div class="container" ng-click="choose('5C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/5C.png">
+                            </div>
+                            <div class="container" ng-click="choose('6C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/6C.png">
+                            </div>
+                            <div class="container" ng-click="choose('7C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/7C.png">
+                            </div>
+                            <div class="container" ng-click="choose('8C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/8C.png">
+                            </div>
+                            <div class="container" ng-click="choose('9C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/9C.png">
+                            </div>
+                            <div class="container" ng-click="choose('10C', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/10C.png">
+                            </div>
+                            <div class="container" ng-click="choose('JC', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/JC.png">
+                            </div>
+                            <div class="container" ng-click="choose('QC', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/QC.png">
+                            </div>
+                            <div class="container" ng-click="choose('KC', playerCard)">
+                                <img class="thumbnail" src="/assets/images/cards/KC.png">
+                            </div>
+                          </div>
+                          <div layout="row">
+                                <div class="container" ng-click="choose('AS', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/AS.png">
+                                </div>
+                                <div class="container" ng-click="choose('2S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/2S.png">
+                                </div>
+                                <div class="container" ng-click="choose('3S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/3S.png">
+                                </div>
+                                <div class="container" ng-click="choose('4S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/4S.png">
+                                </div>
+                                <div class="container" ng-click="choose('5S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/5S.png">
+                                </div>
+                                <div class="container" ng-click="choose('6S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/6S.png">
+                                </div>
+                                <div class="container" ng-click="choose('7S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/7S.png">
+                                </div>
+                                <div class="container" ng-click="choose('8S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/8S.png">
+                                </div>
+                                <div class="container" ng-click="choose('9S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/9S.png">
+                                </div>
+                                <div class="container" ng-click="choose('10S', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/10S.png">
+                                </div>
+                                <div class="container" ng-click="choose('JS', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/JS.png">
+                                </div>
+                                <div class="container" ng-click="choose('QS', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/QS.png">
+                                </div>
+                                <div class="container" ng-click="choose('KS', playerCard)">
+                                    <img class="thumbnail" src="/assets/images/cards/KS.png">
+                                </div>
+                              </div>
+    </md-dialog-content>
+  </form>
+</md-dialog>
+

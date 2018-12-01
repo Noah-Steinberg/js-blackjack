@@ -14,13 +14,21 @@
         <p>Welcome to Noah Steinberg, Justin Rodriguez and Joshua Van Schagen's Blackjack Demo!</p> 
         <p>After closing this dialogue, please click on the chips to place a bet and begin!</p>
         <p>If you need additional help, please see the help button at the top left of the screen.</p>
+        <strong>Debug mode has been enabled. This allows viewing of additional output, and also the dealer's "face down" card</strong>
+        <strong>To enable full cheating, please press "Enable Cheating"</strong>
+        <strong>Cheating enables the player to select all cards dealt on hits and initially. However, 
+          it does not allow the selection of the cards that the dealer may recieve from hitting.
+        </strong>
       </div>
     </md-dialog-content>
 
     <md-dialog-actions layout="row">
       <md-button ng-click="cancel()">
-       Ok
-      </md-button>
+        Ok
+       </md-button>
+       <md-button ng-click="choose(true)">
+        <strong>Enable Cheating</strong>
+       </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>

@@ -62,10 +62,13 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       controller: DialogController,
       templateUrl: 'alerts/intro.ejs',
       parent: angular.element(document.body),
+      scope: $scope.$new(),
       targetEvent: ev,
       clickOutsideToClose:true,
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
-    })
+    }).then(function(cheating){
+      $scope.cheating = cheating;
+    });
   };
 
   $scope.showHelp = function(ev) {
@@ -101,6 +104,48 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       clickOutsideToClose:true,
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     })
+  };
+
+  $scope.chooseCard = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'alerts/chooseCard.ejs',
+      scope: $scope.$new(),
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      multiple: true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+    .then(function(card) {
+      console.log(card);
+      if($scope.started){
+        console.log("Sending 'hit' request");
+        socket.emit("hit", {split: $scope.chooseSplit, card: {rank: card[0], suit: card[1], hidden: false}}, callback);
+      }
+      else{
+        $scope.startingCards.push({rank: card[0], suit: card[1], hidden: false});
+        if($scope.startingCards.length < 4){
+          switch($scope.startingCards.length) {
+            case 1:
+              $scope.message = `Choose Dealer's 'face up' card`
+              $scope.chooseCard();
+              break;
+            case 2:
+              $scope.message = `Choose Player's first card`
+              $scope.chooseCard();
+              break;
+            case 3:
+              $scope.message = `Choose Player's second card`
+              $scope.chooseCard();
+              break;
+          }
+        }
+        else{
+          console.log("Sending 'newgame' request");
+          socket.emit("newGame", {cheating: $scope.cheating, cards: $scope.startingCards});
+        }
+      }
+    });
   };
 
   $scope.chooseCardBack = function(ev) {
@@ -155,8 +200,16 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   };
 
   $scope.hit = function(split) {
-    console.log("Sending 'hit' request");
-    socket.emit("hit", split, callback);
+    card = undefined;
+    if($scope.cheating){
+      $scope.message = split ? `Choose a Card for Players Split Hand` : `Choose a Card for Players Hand`
+      $scope.chooseSplit = split;
+      $scope.chooseCard();
+    }
+    else{
+      console.log("Sending 'hit' request");
+      socket.emit("hit", {split: split, card: card}, callback);
+    }
   };
 
   $scope.stay = function(split) {
@@ -170,8 +223,17 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   };
 
   $scope.newGame = function() {
-    console.log("Sending 'new game' request");
-    socket.emit("newGame");
+    $scope.startingCards = undefined;
+    if($scope.cheating){
+      $scope.startingCards=[];
+      $scope.message = `Choose Dealer's 'face down' card`
+      $scope.chooseCard();
+    }
+    else{
+      console.log("Sending 'new game' request");
+      socket.emit("newGame", {cheating: $scope.cheating, cards: $scope.startingCards});
+    }
+    
   };
 
   socket.on("endGame", function(data) {
@@ -223,7 +285,6 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.inProgress = false;
     $scope.player = player;
     $scope.dealer = {};
+    $scope.showIntro();
   });
-
-  $scope.showIntro();
 });

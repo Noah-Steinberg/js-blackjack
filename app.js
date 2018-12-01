@@ -95,7 +95,7 @@ io.on('connection', function(client) {
 
   var game = {
 
-    reset: function(){
+    reset: function(cards){
       player = {
         pid: 0,
         balance: player.balance,
@@ -127,7 +127,7 @@ io.on('connection', function(client) {
         },
         playing: true
        };
-      game.start();
+      game.start(cards);
       return { message: "Reset Successful!", alert_user: false }
     },
   
@@ -150,32 +150,33 @@ io.on('connection', function(client) {
     },
   
     // deal two cards to each player at the table
-    deal: function() {
-      var card = game.deck.pop();
-      card.hidden = true;
-      logger.info("Player Dealt a " + card.rank + card.suit);
-      player.hand.cards.push(card);
-
-      var card2 = game.deck.pop();
-      card2.hidden = false;
-      logger.info("Player Dealt a " + card2.rank + card2.suit);
-      player.hand.cards.push(card2);
-      if(card.rank==card2.rank && player.balance>=player.bet){
-        player.hand.canSplit = true;
-      }
-
-      card = game.deck.pop();
+    deal: function(cards) {
+      var card = cards && cards[0] ? cards[0] : game.deck.pop();
       card.hidden = true;
       logger.info("Dealer Dealt a " + card.rank + card.suit + " face down");
       game.dealer.hand.cards.push(card);
 
+      card = cards && cards[1] ? cards[1] : game.deck.pop();
       card = game.deck.pop();
       card.hidden = false;
       logger.info("Dealer Dealt a " + card.rank + card.suit);
       game.dealer.hand.cards.push(card);
 
-      if(card.rank==="A" && player.balance >= Math.floor(player.bet/2)){
+      card = cards && cards[2] ? cards[2] : game.deck.pop();
+      card.hidden = true;
+      logger.info("Player Dealt a " + card.rank + card.suit);
+      player.hand.cards.push(card);
+
+      var card2 = cards && cards[3] ? cards[3] : game.deck.pop();
+      card2.hidden = false;
+      logger.info("Player Dealt a " + card2.rank + card2.suit);
+      player.hand.cards.push(card2);
+      
+      if(game.dealer.hand.cards[1].rank==="A" && player.balance >= Math.floor(player.bet/2)){
         player.canInsure = true;
+      }
+      if(card.rank==card2.rank && player.balance>=player.bet){
+        player.hand.canSplit = true;
       }
       if(player.balance>=player.bet){
         player.canDouble = true;
@@ -374,10 +375,10 @@ io.on('connection', function(client) {
       io.sockets.connected[player.sid].emit('endGame', data);
     },
   
-    start: function() {
+    start: function(cards) {
       game.inProgress = true;
       game.deck = game.generateDeck();
-      game.deal();
+      game.deal(cards);
       game.calculateHands();
       game.refreshTable(player);
       logger.info("New Game Started!");
@@ -432,10 +433,10 @@ io.on('connection', function(client) {
       return { message: "Stay Successful!", alert_user: false };
     },
   
-    hit: function(hand) {
+    hit: function(hand, card) {
       data = { message: "Hit Successful!", alert_user: false };
       hand.canSplit = false;
-      hand.cards.push(game.deck.pop());
+      card ? hand.cards.push(card) : hand.cards.push(game.deck.pop());
       game.calculateHands();
       if(hand.value > 21){
         hand.canHit = false;
@@ -487,15 +488,16 @@ io.on('connection', function(client) {
     callback(data.message, data.alert_user);
   });
 
-  client.on('hit', function(split, callback) {
-    data = split ? game.hit(player.split) : game.hit(player.hand);
+  client.on('hit', function(data , callback) {
+    data.card = game.cheating ? data.card : undefined;
+    ret = data.split ? game.hit(player.split) : game.hit(player.hand);
     player.canDouble = false;
     player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
       player.playing=false;
     }
     game.refreshTable(player);
-    callback(data.message, data.alert_user);
+    callback(ret.message, ret.alert_user);
   });
 
   client.on('stay', function(split, callback) {
@@ -525,8 +527,9 @@ io.on('connection', function(client) {
     callback(data.message, data.alert_user);
   });
 
-  client.on('newGame', function() {
-      data = game.reset();
+  client.on('newGame', function(data) {
+      game.cheating = data.cheating && debug;
+      data = game.reset(data.cards);
   });
 });
 
