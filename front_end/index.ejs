@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/scripts/angular-material/angular-material.layouts.min.css">
     <link rel="stylesheet" href="/style.css">
   </head>
-  <body layout="column" ng-controller="mainController as vm">
+  <body layout="column"  ng-controller="mainController as vm">
     <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
       <div class="md-toolbar-tools" >
         <h1>BlackJack Demo</h1>
@@ -22,7 +22,7 @@
         <md-button class="md-accent md-raised" ng-click="chooseCardBack()" id="cardBack">Choose Card Back</md-button>
       </div>
     </md-toolbar>
-    <div layout="row" flex >
+    <div layout="row" style="display:inline-block" >
       <div layout="column" flex id="content">
         <md-content layout="column" flex class="md-padding" ng-style="{backgroundColor: 'green', color: 'white'}">
           <md-card id="dealer-hand" ng-if="dealer.hand!==undefined" ng-style="{backgroundColor: 'green', color: 'white'}">
@@ -42,49 +42,52 @@
             </md-card-content>
           </md-card>
 
-          <div layout="row" >
-            <md-card flex id="my-hand" ng-if="player.hand.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
-              <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
-                <div class="md-toolbar-tools">
-                  <h1>
-                      <strong class="busted" ng-show="player.hand.value > 21">[BUSTED!] </strong>
-                      Your hand (Value: <span id="handValue">{{player.hand.value}}</span>)
-                  </h1>
-                  <div class=hand-controls>
-                      <md-button class="md-accent md-raised" ng-click="hit(false)" id="hit" ng-disabled="!player.hand.canHit" flex >Hit</md-button>
-                      <md-button class="md-accent md-raised" ng-click="stay(false)" id="stay" ng-disabled="!player.hand.canHit" flex >Stay</md-button>
-                      <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-if="player.hand.canSplit">Split</md-button>
-                  </div>
+          <div style="display:inline-block">
+              <div layout="row" >
+                  <md-card flex id="my-hand" ng-if="player.hand.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
+                    <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
+                      <div class="md-toolbar-tools">
+                        <h1>
+                            <strong class="busted" ng-show="player.hand.value > 21">[BUSTED!] </strong>
+                            Your hand (Value: <span id="handValue">{{player.hand.value}}</span>)
+                        </h1>
+                        <div class=hand-controls>
+                            <md-button class="md-accent md-raised" ng-click="hit(false)" id="hit" ng-disabled="!player.hand.canHit" flex >Hit</md-button>
+                            <md-button class="md-accent md-raised" ng-click="stay(false)" id="stay" ng-disabled="!player.hand.canHit" flex >Stay</md-button>
+                            <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-if="player.hand.canSplit">Split</md-button>
+                        </div>
+                      </div>
+      
+                    </md-toolbar>
+                    <md-card-content layout="row" layout-align="space-around center">
+                      <div id="{{'card-'+$index}}" ng-repeat="card in player.hand.cards" flex style="text-align:center">
+                        <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
+                      </div>
+                    </md-card-content>
+                  </md-card>
+      
+                  <md-card flex id="my-split-hand" ng-if="player.split.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
+                    <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
+                      <div class="md-toolbar-tools">
+                        <h1>
+                          <strong class="busted" ng-show="player.split.value > 21">[BUSTED!] </strong>
+                          Split Hand (Value: <span id="splitValue">{{player.split.value}}</span>)
+                        </h1>
+                        <div class=hand-controls>
+                            <md-button class="md-accent md-raised" ng-click="hit(true)" id="hit" ng-disabled="!player.split.canHit" flex >Hit</md-button>
+                            <md-button class="md-accent md-raised" ng-click="stay(true)" id="stay" ng-disabled="!player.split.canHit" flex >Stay</md-button>
+                        </div>
+                      </div>
+                    </md-toolbar>
+                    <md-card-content layout="row" layout-align="space-around center">
+                      <div id="{{'card-'+$index}}" ng-repeat="card in player.split.cards" flex style="text-align:center">
+                        <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
+                      </div>
+                    </md-card-content>
+                  </md-card>
                 </div>
-
-              </md-toolbar>
-              <md-card-content layout="row" layout-align="space-around center">
-                <div id="{{'card-'+$index}}" ng-repeat="card in player.hand.cards" flex style="text-align:center">
-                  <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
-                </div>
-              </md-card-content>
-            </md-card>
-
-            <md-card flex id="my-split-hand" ng-if="player.split.cards.length!==0" ng-style="{backgroundColor: 'green', color: 'white'}">
-              <md-toolbar layout="row" ng-style="{backgroundColor: 'black', color: 'white'}">
-                <div class="md-toolbar-tools">
-                  <h1>
-                    <strong class="busted" ng-show="player.split.value > 21">[BUSTED!] </strong>
-                    Split Hand (Value: <span id="splitValue">{{player.split.value}}</span>)
-                  </h1>
-                  <div class=hand-controls>
-                      <md-button class="md-accent md-raised" ng-click="hit(true)" id="hit" ng-disabled="!player.split.canHit" flex >Hit</md-button>
-                      <md-button class="md-accent md-raised" ng-click="stay(true)" id="stay" ng-disabled="!player.split.canHit" flex >Stay</md-button>
-                  </div>
-                </div>
-              </md-toolbar>
-              <md-card-content layout="row" layout-align="space-around center">
-                <div id="{{'card-'+$index}}" ng-repeat="card in player.split.cards" flex style="text-align:center">
-                  <img ng-hide="!debug && card.rank===undefined" src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
-                </div>
-              </md-card-content>
-            </md-card>
           </div>
+          
 
           <div style="text-align:center">
             <div style="display:inline-block">
