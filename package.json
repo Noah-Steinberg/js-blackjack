@@ -27,5 +27,8 @@
   },
   "devDependencies": {},
   "scripts": {},
-  "author": "Noah Steinberg"
+  "author": "Noah Steinberg",
+  "pkg": {
+    "assets": "front_end/*"
+  }
 }

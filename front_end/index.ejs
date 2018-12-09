@@ -36,7 +36,7 @@
             </md-toolbar>
             <md-card-content layout="row" layout-align="space-around center">
               <div ng-repeat="card in dealer.hand.cards" id="{{'dealer-card-'+$index}}" flex style="text-align:center">
-                <img ng-show="!debug && card.rank===undefined" flex src="/assets/images/cards/{{cardBack}}">
+                <img ng-show="card.rank===undefined" flex src="/assets/images/cards/{{cardBack}}">
                 <img ng-hide="!debug && card.rank===undefined" flex src="/assets/images/cards/{{card.rank}}{{card.suit}}.png">
               </div>
             </md-card-content>

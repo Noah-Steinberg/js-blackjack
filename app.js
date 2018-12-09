@@ -4,11 +4,11 @@ const { combine, timestamp, label, printf } = format;
 var debug = process.argv.length>3 ? process.argv[3]==="true": false;
 var express = require('express'),
     fs = require('fs'),
+    ejs = require('ejs'),
     bodyParser = require('body-parser'),
     http = require('http'),
     https = require('https'),
     uuid = require('node-uuid'),
-    sleep = require('sleep'),
     _ = require('lodash'),
     app = express(),
     session = require('express-session')({
@@ -31,7 +31,6 @@ app.all('/', function (req, res) {
   req.session.user = {pid: uuid.v4()};
   res.render('index');
 });
-
 if(debug){
   console.log(`Starting server on port ${port}`);
   var server = http.createServer(app).listen(port);
@@ -194,7 +193,7 @@ io.on('connection', function(client) {
       var cleanedDealer = _.cloneDeep(game.dealer);
       for(var i=0;i<cleanedDealer.hand.cards.length;i++){
         if(cleanedDealer.hand.cards[i].hidden && game.inProgress){
-          cleanedDealer.hand.cards[i] = debug ? cleanedDealer.hand.cards[i] : '??' + i.toString();
+          cleanedDealer.hand.cards[i] = (debug && game.cheating) ? cleanedDealer.hand.cards[i] : '??';
         }
       }
 
@@ -231,7 +230,7 @@ io.on('connection', function(client) {
             break;
         }
       }
-      if(value+11+(aceCount-1)*1<=21){
+      if(value+11+(aceCount-1)*1<=21 && aceCount > 0){
         value+=11 + aceCount - 1;
       }
       else{
