@@ -132,8 +132,8 @@
                               <md-button class="md-accent md-raised" ng-click="newGame()" id="deal" ng-disabled="inProgress || player.bet<5">Deal</md-button>
                           </div>
                           <div class="container" layout="column">
-                              <md-button class="md-accent md-raised" ng-click="insurance()" id="insurance" ng-if="player.canInsure">Insurance</md-button>
-                              <md-button class="md-accent md-raised" ng-click="double()" id="double" ng-if="player.canDouble">Double</md-button>
+                              <md-button class="md-accent md-raised" ng-click="doubleSplit()" id="doubleSplit" ng-if="player.canDoubleSplit">Double(2)</md-button>
+                              <md-button class="md-accent md-raised" ng-click="double()" id="double" ng-if="player.canDouble">Double(1)</md-button>
                           </div>
                         </md-card-content>
                         

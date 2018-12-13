@@ -10,6 +10,9 @@ function DialogController($scope, $mdDialog) {
   $scope.choose = function(choose) {
     $mdDialog.hide(choose);
   };
+  $scope.acknowledge = function(){
+    $mdDialog.hide();
+  }
 
 }
 
@@ -71,6 +74,20 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     });
   };
 
+  $scope.insurance = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'alerts/insurance.ejs',
+      parent: angular.element(document.body),
+      scope: $scope.$new(),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    }).then(function(insuring){
+      socket.emit('insurance', true);
+    });
+  };
+
   $scope.showHelp = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -104,6 +121,21 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       clickOutsideToClose:true,
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     })
+  };
+
+  $scope.outOfMoney = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      scope: $scope.$new(),
+      templateUrl: 'alerts/outofmoney.ejs',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+    })
+    .then(function() {
+      location.reload();
+    });
   };
 
   $scope.chooseCard = function(ev) {
@@ -180,19 +212,19 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     if($scope.inProgress){
       return;
     }
-    console.log(`Attempting to bet ${amount}`);
-    socket.emit("bet", amount, callback);
+    else if($scope.player.balance===0 && $scope.player.bet===0){
+      $scope.outOfMoney();
+    }
+    else{
+      console.log(`Attempting to bet ${amount}`);
+      socket.emit("bet", amount, callback);
+    }
   };
 
   $scope.resetBet = function(){
     console.log(`Resetting bet to 0`);
     socket.emit("resetBet", undefined, callback);
   };
-
-  $scope.insurance = function(){
-    console.log(`Insuring player`);
-    socket.emit("insurance", undefined, callback);
-  }
 
   $scope.splitHand = function() {
     console.log("Sending 'split' request");
@@ -286,5 +318,9 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.player = player;
     $scope.dealer = {};
     $scope.showIntro();
+  });
+  
+  socket.on("insure", function(){
+    $scope.insurance();
   });
 });

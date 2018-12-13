@@ -172,6 +172,11 @@ io.on('connection', function(client) {
       
       if(game.dealer.hand.cards[1].rank==="A" && player.balance >= Math.floor(player.bet/2)){
         player.canInsure = true;
+        logger.info('Asking player to insure');
+        io.sockets.connected[player.sid].emit('insure', data);
+      }
+      else if(player.hand.value==21){
+        game.finishGame();
       }
       if(card.rank==card2.rank && player.balance>=player.bet){
         player.hand.canSplit = true;
@@ -179,6 +184,7 @@ io.on('connection', function(client) {
       if(player.balance>=player.bet){
         player.canDouble = true;
       }
+      game.calculateHands();
   
     },
   
@@ -418,7 +424,11 @@ io.on('connection', function(client) {
       player.canInsure=false;
       player.balance-=Math.floor(player.bet/2);
       game.refreshTable();
-      return { message: `You bet $${Math.floor(player.bet/2)} on insurance!`, alert_user: true };
+      if(game.dealer.hand.value==21){
+        game.finishGame();
+      }
+      return { message: `You bet $${Math.floor(player.bet/2)} on insurance!`, alert_user: false };
+      
     },
   
     stay: function(hand) {
@@ -478,9 +488,11 @@ io.on('connection', function(client) {
     callback(data.message, data.alert_user);
   });
 
-  client.on('insurance', function(_data, callback) {
-    data = game.insurance(player);
-    callback(data.message, data.alert_user);
+  client.on('insurance', function(insure) {
+    if(insure){
+      game.insurance(player);
+    }
+    player.canInsure = false;
   });
 
   client.on('hit', function(data , callback) {

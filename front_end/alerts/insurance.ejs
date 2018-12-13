@@ -1,0 +1,27 @@
+<md-dialog aria-label="Help">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Intro</h2>
+        <span flex></span>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <p>Would you like to bet for insurance against a dealer blackjack?</p>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="choose(false)">
+        No
+       </md-button>
+       <md-button ng-click="choose(true)">
+        Yes
+       </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
+
