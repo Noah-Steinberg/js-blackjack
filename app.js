@@ -169,14 +169,17 @@ io.on('connection', function(client) {
       card2.hidden = false;
       logger.info("Player Dealt a " + card2.rank + card2.suit);
       player.hand.cards.push(card2);
+      game.calculateHands();
       
-      if(game.dealer.hand.cards[1].rank==="A" && player.balance >= Math.floor(player.bet/2)){
+      if(game.dealer.hand.cards[1].rank==="A" && player.balance >= Math.floor(player.bet/2) && player.hand.value!==21){
         player.canInsure = true;
         logger.info('Asking player to insure');
         io.sockets.connected[player.sid].emit('insure', data);
       }
       else if(player.hand.value==21){
+        logger.info("Player has blackjack!");
         game.finishGame();
+        return -1;
       }
       if(card.rank==card2.rank && player.balance>=player.bet){
         player.hand.canSplit = true;
@@ -184,8 +187,7 @@ io.on('connection', function(client) {
       if(player.balance>=player.bet){
         player.canDouble = true;
       }
-      game.calculateHands();
-  
+      return 1;
     },
   
     // Emit the state of the table to the player, stripping data
@@ -378,10 +380,11 @@ io.on('connection', function(client) {
     start: function(cards) {
       game.inProgress = true;
       game.deck = game.generateDeck();
-      game.deal(cards);
-      game.calculateHands();
-      game.refreshTable(player);
-      logger.info("New Game Started!");
+      if(game.deal(cards) > 0){
+        game.calculateHands();
+        game.refreshTable(player);
+        logger.info("New Game Started!");
+      }
     },
     
     bet: function(amount){
@@ -463,10 +466,10 @@ io.on('connection', function(client) {
       player.hand.canSplit = false;
       player.split.canHit = true;
       player.split.cards.push(player.hand.cards.pop());
+      game.hit(player.split);
+      game.hit(player.hand);
       if(player.split.cards[0].rank==="A" && player.hand.cards[0].rank==="A"){
-        game.hit(player.split);
         player.split.canHit = false;
-        game.hit(player.hand);
         player.hand.canHit = false;
         player.playing = false;
       }

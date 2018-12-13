@@ -52,8 +52,8 @@
                             Your hand (Value: <span id="handValue">{{player.hand.value}}</span>)
                         </h1>
                         <div class=hand-controls>
-                            <md-button class="md-accent md-raised" ng-click="hit(false)" id="hit" ng-disabled="!player.hand.canHit" flex >Hit</md-button>
-                            <md-button class="md-accent md-raised" ng-click="stay(false)" id="stay" ng-disabled="!player.hand.canHit" flex >Stay</md-button>
+                            <md-button class="md-accent md-raised" ng-click="hit(false)" id="hit" ng-disabled="!player.hand.canHit || !inProgress" flex >Hit</md-button>
+                            <md-button class="md-accent md-raised" ng-click="stay(false)" id="stay" ng-disabled="!player.hand.canHit || !inProgress" flex >Stay</md-button>
                             <md-button class="md-accent md-raised" ng-click="splitHand()" id="split" ng-if="player.hand.canSplit">Split</md-button>
                         </div>
                       </div>
@@ -74,8 +74,8 @@
                           Split Hand (Value: <span id="splitValue">{{player.split.value}}</span>)
                         </h1>
                         <div class=hand-controls>
-                            <md-button class="md-accent md-raised" ng-click="hit(true)" id="hit" ng-disabled="!player.split.canHit" flex >Hit</md-button>
-                            <md-button class="md-accent md-raised" ng-click="stay(true)" id="stay" ng-disabled="!player.split.canHit" flex >Stay</md-button>
+                            <md-button class="md-accent md-raised" ng-click="hit(true)" id="hit" ng-disabled="!player.split.canHit || !inProgress" flex >Hit</md-button>
+                            <md-button class="md-accent md-raised" ng-click="stay(true)" id="stay" ng-disabled="!player.split.canHit  || !inProgress" flex >Stay</md-button>
                         </div>
                       </div>
                     </md-toolbar>

@@ -269,6 +269,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   };
 
   socket.on("endGame", function(data) {
+    console.log("Ending current game");
     $scope.winners = data.winners;
     $scope.losers = data.losers;
     $scope.ties = data.ties;
