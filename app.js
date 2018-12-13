@@ -1,10 +1,11 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, label, printf } = format;
 
-var debug = process.argv.length>3 ? process.argv[3]==="true": false;
+var debug = process.argv.length > 3 ? process.argv[3]==="true": false;
 var express = require('express'),
     fs = require('fs'),
     ejs = require('ejs'),
+    path = require('path'),
     bodyParser = require('body-parser'),
     http = require('http'),
     https = require('https'),
@@ -19,7 +20,7 @@ var express = require('express'),
     port = process.argv.length > 2 ? parseInt(process.argv[2]): 443;
 
 app.set('view engine', 'ejs');
-app.set('views', __dirname + '/front_end');
+app.set('views', path.join(__dirname + '/front_end'));
 app.use(express.static(__dirname + '/front_end'));
 app.use('/scripts', express.static(__dirname + '/node_modules'));
 app.use('/assets', express.static(__dirname + '/assets'));
@@ -27,16 +28,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session);
 
-app.all('/', function (req, res) {
+app.use('/', function (req, res) {
   req.session.user = {pid: uuid.v4()};
   res.render('index');
 });
+
 if(debug){
   console.log(`Starting server on port ${port}`);
   var server = http.createServer(app).listen(port);
   console.log(`Server started!`);
 }
 else{
+  console.log("Attempting to load certs");
   const options = {
     key: fs.readFileSync(process.env.SERVER_KEY),
     cert: fs.readFileSync(process.env.SERVER_CERT)
@@ -89,6 +92,8 @@ io.on('connection', function(client) {
     playing: true,
     sid: client.id,
     canDouble: false,
+    hasDoubled: false,
+    hasDoubledSplit: false,
     canInsure: false,
   };
 
@@ -113,6 +118,8 @@ io.on('connection', function(client) {
         playing: true,
         sid: client.id,
         canDouble: false,
+        hasDoubled: false,
+        hasDoubledSplit: false,
         canInsure: false,
       };
       game.table = [];
@@ -453,7 +460,7 @@ io.on('connection', function(client) {
       return data;
     },
 
-    double: function(player) {
+    double: function(player, split=false) {
       player.balance-=player.bet;
       player.bet+=player.bet;
       player.hand.canHit = false;
@@ -524,6 +531,17 @@ io.on('connection', function(client) {
   client.on('double', function(_data, callback) {
     data = game.double(player);
     player.canDouble = false;
+    player.canInsure = false;
+    if(player.split.canHit==false && player.hand.canHit==false){
+      player.playing=false;
+    }
+    game.refreshTable(player);
+    callback(data.message, data.alert_user);
+  });
+
+  client.on('doubleSplit', function(_data, callback) {
+    data = game.double(player, true);
+    player.canDoubleSplit = false;
     player.canInsure = false;
     if(player.split.canHit==false && player.hand.canHit==false){
       player.playing=false;

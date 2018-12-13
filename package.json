@@ -28,7 +28,12 @@
   "devDependencies": {},
   "scripts": {},
   "author": "Noah Steinberg",
+  "bin": "app.js",
   "pkg": {
-    "assets": "front_end/*"
+    "assets": [
+      "assets/**/*",
+      "front_end/**/*",
+      "node_modules/**/*"
+    ]
   }
 }

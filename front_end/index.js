@@ -1,5 +1,4 @@
 
-
 var blackJackApp = angular.module('blackJackApp', ['ngRoute', 'ngMaterial']);
 
 function DialogController($scope, $mdDialog) {
