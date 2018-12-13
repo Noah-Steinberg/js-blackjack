@@ -1,7 +1,7 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, label, printf } = format;
 
-var debug = process.argv.length > 3 ? process.argv[3]==="true": false;
+var debug = process.argv.length > 3 ? process.argv[3]==="false": true;
 var express = require('express'),
     fs = require('fs'),
     ejs = require('ejs'),
@@ -17,7 +17,7 @@ var express = require('express'),
       resave: true,
       saveUninitialized: true
     }),
-    port = process.argv.length > 2 ? parseInt(process.argv[2]): 443;
+    port = process.argv.length > 2 ? parseInt(process.argv[2]): 8080;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname + '/front_end'));
