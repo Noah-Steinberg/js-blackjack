@@ -1,6 +1,9 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, label, printf } = format;
 
+/*
+Importing all the required libraries for the program
+ */
 var debug = process.argv.length > 3 ? process.argv[3]==="false": true;
 var express = require('express'),
     fs = require('fs'),
@@ -18,7 +21,9 @@ var express = require('express'),
       saveUninitialized: true
     }),
     port = process.argv.length > 2 ? parseInt(process.argv[2]): 8080;
-
+/*
+Initializing the express app to program the url paths in browser
+*/
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname + '/front_end'));
 app.use(express.static(__dirname + '/front_end'));
@@ -27,12 +32,14 @@ app.use('/assets', express.static(__dirname + '/assets'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session);
-
 app.use('/', function (req, res) {
   req.session.user = {pid: uuid.v4()};
   res.render('index');
 });
 
+/*
+Start the program in debug mode as http, or in regular mode as https
+ */
 if(debug){
   console.log(`Starting server on port ${port}`);
   var server = http.createServer(app).listen(port);
@@ -53,12 +60,14 @@ else{
 
 io = require('socket.io').listen(server);
 
-// New game connection requested
+/*
+ Setup a new connection when a client connects
+ */
 io.on('connection', function(client) {
   myFormat = printf(info => {
     return `[${info.timestamp}][UID:${client.id}] ${info.level}: ${info.message}`;
   });
-
+  //Initialize a logger for the program information
   logger = createLogger({
     level: 'debug',
     prettyPrint: true,
@@ -73,7 +82,7 @@ io.on('connection', function(client) {
   });
   logger.info("New client connected");
 
-  // New player
+  //Initialize the player object to default values
   var player = {
     pid: 0,
     balance: 500,
@@ -97,8 +106,11 @@ io.on('connection', function(client) {
     canInsure: false,
   };
 
+  //Create the game for this connection
   var game = {
-
+    /*
+    Whenever required, reset all values back to their default amounts (like on the first game, or a new game)
+    */
     reset: function(cards){
       player = {
         pid: 0,
@@ -136,7 +148,9 @@ io.on('connection', function(client) {
       game.start(cards);
       return { message: "Reset Successful!", alert_user: false }
     },
-  
+    /*
+    Generate a new deck
+    */
     generateDeck: function() {
       var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9","T", "J", "Q", "K"];
       var suits = ["C", "D", "H", "S"];
@@ -149,13 +163,17 @@ io.on('connection', function(client) {
       logger.info("Deck Created");
       return game.shuffle(deck);
     },
-  
+    /*
+    Shuffle the deck
+    */
     shuffle: function(deck) {
       logger.info("Deck Shuffled");
      return _.shuffle(deck);
     },
-  
-    // deal two cards to each player at the table
+    /*
+    Deal each player two cards.
+    If "cards" is specified, the specified cards are dealt to the players instead
+    */
     deal: function(cards) {
       var card = cards && cards[0] ? cards[0] : game.deck.pop();
       card.hidden = true;
@@ -197,9 +215,10 @@ io.on('connection', function(client) {
       return 1;
     },
   
-    // Emit the state of the table to the player, stripping data
+    /*
+    Refresh the table for the game, sending data to the UI
+    */
     refreshTable: function() {
-      // They don't have a socket ID? Don't send, its the dealer
       if (!('sid' in player))
         return;
 
@@ -208,7 +227,7 @@ io.on('connection', function(client) {
       var cleanedDealer = _.cloneDeep(game.dealer);
       for(var i=0;i<cleanedDealer.hand.cards.length;i++){
         if(cleanedDealer.hand.cards[i].hidden && game.inProgress){
-          cleanedDealer.hand.cards[i] = (debug && game.cheating) ? cleanedDealer.hand.cards[i] : '??';
+          cleanedDealer.hand.cards[i] = '??';
         }
       }
 
@@ -225,7 +244,9 @@ io.on('connection', function(client) {
         game.finishGame();
       }
     },
-  
+    /*
+    Calculates the score of the hand given to the function
+    */
     calculateHand: function(hand) {
       var value = 0;
       var aceCount = 0;
@@ -253,13 +274,17 @@ io.on('connection', function(client) {
       }
       return value;
     },
-  
+    /*
+    Calculate and store the score of all hands in the table
+    */
     calculateHands: function() {
       player.hand.value = game.calculateHand(player.hand);
       player.split.value = game.calculateHand(player.split);
       game.dealer.hand.value = game.calculateHand(game.dealer.hand);
     },
-  
+    /*
+    Play the dealers hand given the current game state
+    */
     playDealer: function() {
       if(game.dealer.hand.value < 17 && (player.hand.value <= 21 || (player.split.value <= 21 && player.split.cards.length!=0))){
         game.dealer.hand.cards.push(game.deck.pop());
@@ -269,7 +294,9 @@ io.on('connection', function(client) {
       }
 
     },
-  
+    /*
+    Determine the winning hands at the table
+    */
     determineWinner: function() {
       /*
        * 1 represents dealer, 
@@ -376,14 +403,18 @@ io.on('connection', function(client) {
       return {"winners" : winners, "losers": losers, "ties": ties, "winnings": winnings};
   
     },
-  
+    /*
+    Send the game finishing data to the UI
+    */
     finishGame: function() {
       data = game.determineWinner();
       game.refreshTable();
       logger.info("Sending following winner data: " + JSON.stringify(data));
       io.sockets.connected[player.sid].emit('endGame', data);
     },
-  
+    /*
+    Start a new game, if "cards" is specified, those cards are dealt to the new player
+    */
     start: function(cards) {
       game.inProgress = true;
       game.deck = game.generateDeck();
@@ -393,7 +424,9 @@ io.on('connection', function(client) {
         logger.info("New Game Started!");
       }
     },
-    
+    /*
+    Increases the players bet by the specified amount
+    */
     bet: function(amount){
       if(player.balance>=amount && player.bet+amount<=500){
         logger.info(`Betting ${amount}`);
@@ -419,7 +452,9 @@ io.on('connection', function(client) {
       io.sockets.connected[player.sid].emit('updateBet', player);
       return data;
     },
-
+    /*
+    Resets the players bet to 0
+    */
     resetBet: function(){
       logger.info(`Resetting bet to 0`)
       player.balance+=player.bet;
@@ -427,7 +462,9 @@ io.on('connection', function(client) {
       io.sockets.connected[player.sid].emit('updateBet', player);
       return { message: "Reset Successful!", alert_user: false };
     },
-
+    /*
+    Bets insurance for the player
+    */
     insurance: function(){
       logger.info(`Betting insurance`)
       player.insured=true;
@@ -440,13 +477,17 @@ io.on('connection', function(client) {
       return { message: `You bet $${Math.floor(player.bet/2)} on insurance!`, alert_user: false };
       
     },
-  
+    /*
+    Sets the current hand to stay, disabling hitting and splitting
+    */
     stay: function(hand) {
       hand.canSplit = false;
       hand.canHit = false;
       return { message: "Stay Successful!", alert_user: false };
     },
-  
+    /*
+    Adds a card to the specified hand
+    */
     hit: function(hand, card) {
       data = { message: "Hit Successful!", alert_user: false };
       hand.canSplit = false;
@@ -459,7 +500,9 @@ io.on('connection', function(client) {
       }
       return data;
     },
-
+    /*
+    Bets double for the player
+    */
     double: function(player, split=false) {
       player.balance-=player.bet;
       player.bet+=player.bet;
@@ -467,7 +510,9 @@ io.on('connection', function(client) {
       data = game.hit(player.hand);
       return data;
     },
-  
+    /*
+    Splits the players inital hand into two new hands
+    */
     split: function() {
       player.balance-=player.bet;
       player.hand.canSplit = false;
@@ -484,7 +529,9 @@ io.on('connection', function(client) {
       return { message: "Split Successful!", alert_user: false };
     }
   };
-
+  /*
+  The following sections handle all the socket/connection logic from the player and the website
+  */
   askSid = client.id;
   io.sockets.connected[client.id].emit('connected', debug, player);
 

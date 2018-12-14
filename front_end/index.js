@@ -1,6 +1,7 @@
-
+//Setting up the angular library
 var blackJackApp = angular.module('blackJackApp', ['ngRoute', 'ngMaterial']);
 
+//Handles all logic for the pop-up dialogs
 function DialogController($scope, $mdDialog) {
 
   $scope.cancel = function() {
@@ -15,6 +16,7 @@ function DialogController($scope, $mdDialog) {
 
 }
 
+//Sets up the socket to communicate with the webserver
 blackJackApp.factory('socket', ['$rootScope', function ($rootScope) {
   var socket = io.connect();
 
@@ -42,6 +44,7 @@ blackJackApp.factory('socket', ['$rootScope', function ($rootScope) {
   };
 }]);
 
+//Configures and runs the angular app for the client
 blackJackApp.config(['$routeProvider', '$mdThemingProvider', function($routeProvider, $mdThemingProvider) {
   $routeProvider.when('/', {
     templateUrl: '/',
@@ -52,6 +55,7 @@ blackJackApp.config(['$routeProvider', '$mdThemingProvider', function($routeProv
 
 }]);
 
+//Sets up the controller for all frontend actions
 blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.player = {};
   $scope.dealer = {};
@@ -59,6 +63,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
   $scope.cardBack = "cardBack_red2.png";
   $scope.winnings = 0;
 
+  //Show the introduction to the player
   $scope.showIntro = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -73,6 +78,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     });
   };
 
+  //Prompts the player to ask if they want to bet insurance
   $scope.insurance = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -80,13 +86,13 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       parent: angular.element(document.body),
       scope: $scope.$new(),
       targetEvent: ev,
-      clickOutsideToClose:true,
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     }).then(function(insuring){
-      socket.emit('insurance', true);
+      socket.emit('insurance', insuring);
     });
   };
 
+  //Shows the help dialog to the player
   $scope.showHelp = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -97,7 +103,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     })
   };
-
+  //Displays some message to the player
   $scope.showMessage = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -109,7 +115,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     })
   };
-
+  // Shows the results of the hand to the user
   $scope.showResults = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -121,7 +127,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
     })
   };
-
+  //Lets the user know they are out of money
   $scope.outOfMoney = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -136,7 +142,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       location.reload();
     });
   };
-
+  //When cheating is enabled, this allows the player to select the cards that are dealt
   $scope.chooseCard = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -178,7 +184,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       }
     });
   };
-
+  //Allows the player to customize the card back that the player uses
   $scope.chooseCardBack = function(ev) {
     $mdDialog.show({
       controller: DialogController,
@@ -192,11 +198,11 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       $scope.cardBack = cardBack;
     });
   };
-
+  //IN the future will allow the user to login to an account
   $scope.login = function(ev) {
     //TODO
   };
-
+  //SEts up a function for displaying server responses when required
   callback = function(message, alert_user=false){
     if(alert_user){
       $scope.message = message;
@@ -206,7 +212,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       console.log(message);
     }
   };
-
+  //Sends a message to the server to increase the players bet
   $scope.bet = function(amount) {
     if($scope.inProgress){
       return;
@@ -219,17 +225,18 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       socket.emit("bet", amount, callback);
     }
   };
-
+  //Sends a message to the server to reset the players bet to 0
   $scope.resetBet = function(){
     console.log(`Resetting bet to 0`);
     socket.emit("resetBet", undefined, callback);
   };
-
+  //SEnds a message to the server to split the players hand
   $scope.splitHand = function() {
     console.log("Sending 'split' request");
     socket.emit("split", undefined, callback);
   };
-
+  //SEnds a message to the server to give the player a new card for their hand.
+  //IF cheating is enabled, the player selects the card the server will add to their hand
   $scope.hit = function(split) {
     card = undefined;
     if($scope.cheating){
@@ -242,17 +249,18 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
       socket.emit("hit", {split: split, card: card}, callback);
     }
   };
-
+  //Sends a message to the server to 'stay' for that hand
   $scope.stay = function(split) {
     console.log("Sending 'stay' request");
     socket.emit("stay", split, callback);
   };
-
+  //SEnds a message to the server that the player wants to bet 'double'
   $scope.double = function() {
     console.log("Sending 'double' request");
     socket.emit("double", undefined, callback);
   };
-
+  //Sends a message to the server to start a new game
+  //If cheating is enabled, the player selects the starting hands for themselves and the dealer
   $scope.newGame = function() {
     $scope.startingCards = undefined;
     if($scope.cheating){
@@ -266,7 +274,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     }
     
   };
-
+  //Ends the current hand and displays the result to the player
   socket.on("endGame", function(data) {
     console.log("Ending current game");
     $scope.winners = data.winners;
@@ -280,7 +288,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.inProgress=false;
   });
 
-  // when an action is complete, refresh the data
+  //When an action is complete, the server sends a refresh request along with the data 
   socket.on("refresh", function(data) {
     var audio = new Audio('assets/sounds/hit.ogg');
     if(!$scope.started){
@@ -302,7 +310,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.dealer = data.dealer;
     $scope.player = data.me;
   });
-
+  //Reflects the changes to the players bet on the screen
   socket.on("updateBet", function(data) {
     if($scope.player.bet!=data.bet){
       var audio = new Audio('assets/sounds/bet.ogg');
@@ -310,7 +318,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     }
     $scope.player = data;
   });
-
+  //EStablishes the connection to the server
   socket.on("connected", function(debug, player) {
     console.log("Connection Established");
     $scope.debug = debug;
@@ -319,7 +327,7 @@ blackJackApp.controller('mainController', function($scope, $mdDialog, socket) {
     $scope.dealer = {};
     $scope.showIntro();
   });
-  
+  //Informs the player that they have the option to insure against a dealers blackjack
   socket.on("insure", function(){
     $scope.insurance();
   });
